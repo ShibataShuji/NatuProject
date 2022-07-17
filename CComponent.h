@@ -2,6 +2,9 @@
 
 #include <d3dx9.h>
 
+// デフォルトサイズ
+static const float def_Size = 100.0f;
+
 class GameObject;
 
 // CComponentのUpdateとかはgameObjectのUpdateとかで呼んでいる

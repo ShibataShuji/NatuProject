@@ -18,11 +18,13 @@ protected:	// アクセス指定子
 
 	D3DXVECTOR3	m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);		// 現在の速度ベクトル
 
+	int			m_TagNum = 0;
+
 
 	// 計算用
 	D3DXVECTOR3 m_Old_Position;
-	D3DXVECTOR3 m_temp_Position;
-	D3DXVECTOR3	m_temp_Velocity;
+	//D3DXVECTOR3 m_temp_Position;
+	//D3DXVECTOR3	m_temp_Velocity;
 
 
 
@@ -47,6 +49,16 @@ public:
 		m_Child.clear();
 	}
 
+	int Gettagnum()
+	{
+		return m_TagNum;
+	}
+
+	virtual void Init()	// 純粋仮想関数
+	{
+
+	}
+
 
 	virtual void Uninit()
 	{
@@ -59,12 +71,14 @@ public:
 
 	// virtual(純粋仮想関数)なので、これを継承したplayerクラスなどでUpdate関数を作るとそっちが呼ばれて
 	// これは呼ばれないが、playerのupdateの方でこれを呼ぶ(親クラスのupdate)と呼べる。
+	// これの子クラスであるplayerとかの中で明示的にGameObject::Updateって風に呼ばないといけない。
+	// Drawとか忘れがちなので注意
 	virtual void Update()
 	{
 		// 座標の保存
 		m_Old_Position = m_Position;
-		m_temp_Position = m_Position;
-		m_temp_Velocity = m_Velocity;
+		//m_temp_Position = m_Position;
+		//m_temp_Velocity = m_Velocity;
 
 
 		// playerとか子クラスのUpdateの後に来てほしいので、playerとか子クラスのUpdateの最後に書く。
@@ -78,6 +92,14 @@ public:
 			c->Update();*/
 	}
 
+
+	virtual void Draw()
+	{
+		for (auto c : m_ComponentList)
+			c->Draw();
+	}
+
+
 	// コンポーネントのアップデート
 	virtual void ComponentUpdate()
 	{
@@ -86,38 +108,32 @@ public:
 	}
 
 	// Tempの更新
-	virtual void TemporarySetUpdate()
-	{
-		m_Position = m_temp_Position;
-		m_Velocity = m_temp_Velocity;
-	}
-
-
-	virtual void Init() = 0;	// 純粋仮想関数
-	/*virtual void Uninit() = 0;*/
-	/*virtual void Update() = 0;*/
-	//virtual void Draw() = 0;
-
-	virtual void Draw()
-	{
-		for (auto c : m_ComponentList)
-			c->Draw();
-	}
+	//virtual void TemporarySetUpdate()
+	//{
+	//	m_Position = m_temp_Position;
+	//	m_Velocity = m_temp_Velocity;
+	//}
 
 	D3DXVECTOR3 GetPosition() { return m_Position; }
 	void SetPosition(D3DXVECTOR3 Position){	m_Position = Position;	}
+	void SetPosition_x(float x){	m_Position.x = x;	}
+	void SetPosition_y(float y){	m_Position.y = y;	}
+	void SetPosition_z(float z){	m_Position.z = z;	}
 
 	D3DXVECTOR3 GetOldPosition() { return m_Old_Position; }
 	void SetOldPosition(D3DXVECTOR3 Position) { m_Old_Position = Position; }
 
-	D3DXVECTOR3 GetTempPosition() { return m_temp_Position; }
-	void SetTempPosition(D3DXVECTOR3 Position) { m_temp_Position = Position; }
+	//D3DXVECTOR3 GetTempPosition() { return m_temp_Position; }
+	//void SetTempPosition(D3DXVECTOR3 Position) { m_temp_Position = Position; }
 
 	D3DXVECTOR3 GetVelocity() { return m_Velocity; }
 	void SetVelocity(D3DXVECTOR3 Velocity) { m_Velocity = Velocity; }
+	void SetVelocity_x(float x) { m_Velocity.x = x; }
+	void SetVelocity_y(float y) { m_Velocity.y = y; }
+	void SetVelocity_z(float z) { m_Velocity.z = z; }
 
-	D3DXVECTOR3 GetTempVelocity() { return m_temp_Velocity; }
-	void SetTempVelocity(D3DXVECTOR3 Velocity) { m_temp_Velocity = Velocity; }
+	//D3DXVECTOR3 GetTempVelocity() { return m_temp_Velocity; }
+	//void SetTempVelocity(D3DXVECTOR3 Velocity) { m_temp_Velocity = Velocity; }
 
 
 	D3DXVECTOR3 GetRotation() { return m_Rotation; }
@@ -128,6 +144,17 @@ public:
 	void SetScale(D3DXVECTOR3 setscale) {
 		m_Scale = setscale
 			;
+	}
+
+	// このオブジェクトのm_Scale,m_Rotation,m_Positionを使ってワールドマトリクスを0から作る
+	D3DXMATRIX GetWorldMatrix()
+	{
+		D3DXMATRIX world, scale, rot, trans;
+		D3DXMatrixScaling(&scale, m_Scale.x, m_Scale.y, m_Scale.z);
+		D3DXMatrixRotationYawPitchRoll(&rot, m_Rotation.y, m_Rotation.x, m_Rotation.z);
+		D3DXMatrixTranslation(&trans, m_Position.x, m_Position.y, m_Position.z);
+		world = scale * rot * trans;
+		return world;
 	}
 
 

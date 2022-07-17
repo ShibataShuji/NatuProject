@@ -21,6 +21,7 @@
 #include "Title.h"
 #include "Result.h"
 #include "audio.h"
+#include "Score.h"
 
 Audio* bgm;
 
@@ -62,7 +63,7 @@ void Game::Init()
 	}
 
 
-	AddGameObject<Polygon2D>(2);
+	AddGameObject<Score>(2);
 	// 2D‚ÌŒã‚É‚Í3D‚Í•\¦‚Å‚«‚È‚¢GG
 
 
@@ -113,21 +114,21 @@ void Game::Update()
 	// ƒvƒŒƒCƒ„[‚ª‚¢‚È‚­‚È‚Á‚½`
 
 
-	// “GƒLƒƒƒ‰‚ª‚¢‚È‚­‚È‚Á‚½‚ç`
-	Scene* scene = Manager::GetScene();
-	std::vector<Enemy*> enemys = scene->GetGameObjects<Enemy>(1);
-	int AliveEnemyNum = 0;
-	for (auto& i : enemys)
-	{
-		AliveEnemyNum++;
-	}
-	if (AliveEnemyNum == 0)
-	{
-		Manager::SetScene<Result>();
-	}
+	//// “GƒLƒƒƒ‰‚ª‚¢‚È‚­‚È‚Á‚½‚ç`
+	//Scene* scene = Manager::GetScene();
+	//std::vector<Enemy*> enemys = scene->GetGameObjects<Enemy>(1);
+	//int AliveEnemyNum = 0;
+	//for (auto& i : enemys)
+	//{
+	//	AliveEnemyNum++;
+	//}
+	//if (AliveEnemyNum == 0)
+	//{
+	//	Manager::SetScene<Result>();
+	//}
 
-	if (Input::GetKeyTrigger(VK_RETURN))
-	{
-		Manager::SetScene<Result>();
-	}
+	//if (Input::GetKeyTrigger(VK_RETURN))
+	//{
+	//	Manager::SetScene<Result>();
+	//}
 }

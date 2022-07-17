@@ -5,8 +5,6 @@
 #include <windows.h>
 #include <assert.h>
 
-
-
 #pragma warning(push)
 #pragma warning(disable:4005)
 

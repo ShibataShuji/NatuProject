@@ -12,6 +12,40 @@
 #include "Rigidbody.h"
 #include "Collision.h"
 #include "Platform.h"
+//
+//struct CAPSULEB
+//{
+//	float m_Radius;				// 半径
+//	D3DXVECTOR3 m_PointUpper;	// カプセルの上の球体部分の球の中心座標
+//	D3DXVECTOR3 m_PointLower;	// カプセルの下の球体部分の球の中心座標
+//
+//	// コンストラクタ
+//	CAPSULEB() : m_Radius(0.5f), m_PointUpper(0, -0.5f, 0), m_PointLower(0, 0.5f, 0) {}
+//
+//	// カプセルの中心座標を取得
+//	D3DXVECTOR3 GetCenter() const
+//	{
+//		return m_PointUpper + ((m_PointLower - m_PointUpper) * 0.5f);
+//	}
+//
+//	// カプセルの中心座標から上下2つの球の座標をセット
+//	void SetCenter(const D3DXVECTOR3& Center) {
+//		D3DXVECTOR3 CenterToPointA = ((m_PointUpper - m_PointLower) * 0.5f);
+//		D3DXVECTOR3 CenterToPointB = ((m_PointLower - m_PointUpper) * 0.5f);
+//		m_PointUpper = Center + CenterToPointA;
+//		m_PointLower = Center + CenterToPointB;
+//	}
+//	// 縦の半径を取得する
+//	float GetHeightRadius()const {
+//		D3DXVECTOR3 temp_calclength = m_PointLower - m_PointUpper;
+//		float PointLen = D3DXVec3Length(&temp_calclength) * 0.5f;
+//		PointLen += m_Radius;
+//		return PointLen;
+//	}
+//};
+
+
+
 
 class Gameobject;
 
@@ -29,6 +63,19 @@ void Player::Init()
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Scale	   = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
+	m_TagNum = 2;
+
+
+
+	// Componentの設定
+	// <Collision>
+	//　カプセルコリジョンの設定
+	//Point offset = { 0.0f,0.0f + m_Scale.y,0.0f };
+	//GetComponent<Collision>()->SetCollisionOffset(offset);
+	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x + offset.x, m_Position.y + offset.y, m_Position.z + offset.z),50.0f, 100.0f);
+	GetComponent<Collision>()->SetMovable(true);
+	GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
+	GetComponent<Collision>()->LoadCollisionModel();
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout,"vertexLightingVS.cso");
 
@@ -77,21 +124,25 @@ void Player::Update()
 
 	if (Input::GetKeyPress('A'))
 	{
-		m_temp_Velocity -= right * 0.01;
+		m_Velocity -= right * 0.01;
+		//m_temp_Velocity -= right * 0.01;
 		//m_Position -= GetComponent<Rigidbody>()->GetVelocity() * 0.01f;
 	}
 	if (Input::GetKeyPress('D'))
 	{
-		m_temp_Velocity += right * 0.01;
+		m_Velocity += right * 0.01;
+		//m_temp_Velocity += right * 0.01;
 	}
 
 	if (Input::GetKeyPress('W'))
 	{
-		m_temp_Velocity += forward * 0.01;
+		m_Velocity += forward * 0.01;
+		//m_temp_Velocity += forward * 0.01;
 	}
 	if (Input::GetKeyPress('S'))
 	{
-		m_temp_Velocity -= forward * 0.01;
+		m_Velocity -= forward * 0.01;
+		//m_temp_Velocity -= forward * 0.01;
 	}
 
 	if (Input::GetKeyPress('Q'))
@@ -112,36 +163,9 @@ void Player::Update()
 	// ジャンプ
 	if (Input::GetKeyTrigger('J'))
 	{
-		m_temp_Velocity.y = 0.25f;
+		m_Velocity.y = 0.25f;
+		//m_temp_Velocity.y = 0.25f;
 	}
-
-	//// Platformとの当たり判定
-	//Scene* scene = Manager::GetScene();
-	//std::vector<Platform*> platformList = scene->GetGameObjects<Platform>(1);
-
-	//for (Platform* platform : platformList)
-	//{
-	//	D3DXVECTOR3 platformPosition = platform->GetPosition();
-	//	D3DXVECTOR3 platformScale = platform->GetScale();
-
-	//	D3DXVECTOR3 direction = m_Position - platformPosition;		// 方向ベクトルを出している
-	//	direction.y = 0.0f;											// 方向ベクトルのy方向のベクトルをなくしている
-	//	float length = D3DXVec3Length(&direction);					// これで円柱の中心からの距離が求まっている
-
-	//	if (length < platformScale.x)
-	//	{
-	//		if (m_Position.y < platformPosition.y + platformScale.y - 0.5f)		// 移動距離が大きくてめりこみを少しでも防ぐため-0.5fしてゆるくしている
-	//		{
-	//			m_Position.x = oldPosition.x;
-	//			m_Position.z = oldPosition.z;
-	//		}
-	//		else
-	//		{
-	//			groundHeight = platformPosition.y + platformScale.y;
-	//		}
-	//		break;
-	//	}
-	//}
 
 
 
@@ -172,12 +196,14 @@ void Player::Update()
 	// プレイヤーの移動の入力処理が終わった後にコンポーネント(物理や子リジョン)のUpdateを行う
 	GameObject::ComponentUpdate();
 	// 本物にTemporaryを更新
-	GameObject::TemporarySetUpdate();
+	/*GameObject::TemporarySetUpdate();*/
 }
 
 
 void Player::Draw()
 {
+	GameObject::Draw();
+
 	// 入力レイアウト設定
 	Renderer::GetDeviceContext()->IASetInputLayout(m_VertexLayout);
 
@@ -186,17 +212,23 @@ void Player::Draw()
 	Renderer::GetDeviceContext()->PSSetShader(m_PixelShader, NULL, 0);
 
 
+	// ワールドマトリクス(4x4の行列)は毎回0から計算しなおす
+	// スケール、回転、座標、それらをかけあわせることでちゃんとしたワールドマトリクスとなる。
+	// 0から作り直さないといけない理由は、30度回転したものをまた回転させようとしたときに、回転の軸が変わってくるからだ。
+	// そんな感じで初期状態が違うだけで最終結果が変わってくるので、毎回0から作る。
+	// なので、変数で保存しない方が良い(その場で使うだけのローカルならいいと思う)
 	// ワールドマトリクス設定
-	D3DXMATRIX world, scale, rot, trans;
+	/*D3DXMATRIX world, scale, rot, trans;
 	D3DXMatrixScaling(&scale, m_Scale.x, m_Scale.y, m_Scale.z);
 	D3DXMatrixRotationYawPitchRoll(&rot, m_Rotation.y, m_Rotation.x, m_Rotation.z);
 	D3DXMatrixTranslation(&trans, m_Position.x, m_Position.y, m_Position.z);
-	world = scale * rot * trans;
+	world = scale * rot * trans;*/
+	D3DXMATRIX world = GetWorldMatrix();	// 関数にまとめた
 	Renderer::SetWorldMatrix(&world);
 
 	m_Model->Draw();
 
-	GameObject::Draw();
+	
 }
 
 // プレイヤーの座標を返す

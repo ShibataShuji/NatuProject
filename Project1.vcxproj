@@ -153,6 +153,7 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CGameObject.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="field.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="Resultlogo.cpp" />
+    <ClCompile Include="Score.cpp" />
     <ClCompile Include="Shadow.cpp" />
     <ClCompile Include="Sky.cpp" />
     <ClCompile Include="testhghdfvs.cpp" />
@@ -201,6 +203,7 @@
     <ClInclude Include="Resultlogo.h" />
     <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="scene.h" />
+    <ClInclude Include="Score.h" />
     <ClInclude Include="Shadow.h" />
     <ClInclude Include="Sky.h" />
     <ClInclude Include="testhghdfvs.h" />

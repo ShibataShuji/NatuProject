@@ -18,6 +18,16 @@ void Enemy::Init()
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
+	m_TagNum = 0;
+
+	// Componentの設定
+	// <Collision>
+	//　カプセルサイズの設定
+	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x, m_Position.y, m_Position.z), 100.0f, 100.0f);
+	GetComponent<Collision>()->SetMovable(true);
+	GetComponent<Collision>()->SetCollisionType(CAPUSULE_COLLISION);
+	GetComponent<Collision>()->LoadCollisionModel();
+
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "vertexLightingVS.cso");
 
@@ -44,13 +54,19 @@ void Enemy::Update()
 	// ジャンプ
 	if (Input::GetKeyTrigger('K'))
 	{
-		m_temp_Velocity.y = 0.25f;
+		m_Velocity.y = 0.25f;
+	}
+
+	// ジャンプ
+	if (Input::GetKeyTrigger('O'))
+	{
+		m_Rotation.x += 0.1f;
 	}
 
 
 	
 	GameObject::ComponentUpdate();
-	GameObject::TemporarySetUpdate();
+	//GameObject::TemporarySetUpdate();
 }
 
 
@@ -68,11 +84,12 @@ void Enemy::Draw()
 
 
 	// ワールドマトリクス設定
-	D3DXMATRIX world, scale, rot, trans;
-	D3DXMatrixScaling(&scale, m_Scale.x, m_Scale.y, m_Scale.z);
-	D3DXMatrixRotationYawPitchRoll(&rot, m_Rotation.y, m_Rotation.x, m_Rotation.z);
-	D3DXMatrixTranslation(&trans, m_Position.x, m_Position.y, m_Position.z);
-	world = scale * rot * trans;
+	//D3DXMATRIX world, scale, rot, trans;
+	//D3DXMatrixScaling(&scale, m_Scale.x, m_Scale.y, m_Scale.z);
+	//D3DXMatrixRotationYawPitchRoll(&rot, m_Rotation.y, m_Rotation.x, m_Rotation.z);
+	//D3DXMatrixTranslation(&trans, m_Position.x, m_Position.y, m_Position.z);
+	//world = scale * rot * trans;
+	D3DXMATRIX world = GetWorldMatrix();	// 関数にまとめた
 	Renderer::SetWorldMatrix(&world);
 
 	m_Model->Draw();
