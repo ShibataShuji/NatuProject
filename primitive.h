@@ -63,14 +63,14 @@
 //		return Float3(r.x / l, r.y / l, r.z / l);
 //	}
 //
-//	// 自分自身と引数のdot
-//	float dot(const Float3& r) const {
-//		return x * r.x + y * r.y + z * r.z;
-//	}
+	//// 自分自身と引数のdot
+	//float dot(const Float3& r) const {
+	//	return x * r.x + y * r.y + z * r.z;
+	//}
 //
-//	Float3 cross(const Float3& r) const {
-//		return Float3(y * r.z - z * r.y, z * r.x - x * r.z, x * r.y - y * r.x);
-//	}
+	//Float3 cross(const Float3& r) const {
+	//	return Float3(y * r.z - z * r.y, z * r.x - x * r.z, x * r.y - y * r.x);
+	//}
 //
 //	float length() const {
 //		return sqrtf(lengthSq());
@@ -141,11 +141,11 @@
 //		return (-_OX_EPSILON_ < d&& d < _OX_EPSILON_);	// 誤差範囲内なら垂直と判定
 //	}
 //
-//	// 平行関係にある？
-//	bool isParallel(const Vec3& r) const {
-//		float d = cross(r).lengthSq();
-//		return (-_OX_EPSILON_ < d&& d < _OX_EPSILON_);	// 誤差範囲内なら平行と判定
-//	}
+	//// 平行関係にある？
+	//bool isParallel(const Vec3& r) const {
+	//	float d = cross(r).lengthSq();
+	//	return (-_OX_EPSILON_ < d&& d < _OX_EPSILON_);	// 誤差範囲内なら平行と判定
+	//}
 //
 //	// 鋭角関係？
 //	bool isSharpAngle(const Vec3& r) const {
@@ -302,7 +302,6 @@
 //float calcLineLineDist(const Line& l1, const Line& l2, Point& p1, Point& p2, float& t1, float& t2);
 //void clamp01(float& v);
 //float calcSegmentSegmentDist(const Segment& s1, const Segment& s2, Point& p1, Point& p2, float& t1, float& t2);
-//bool colCapsuleCapsule(const Capsule& c1, const Capsule& c2, Point* p1, Point* p2, float* vd);
 ////void ClosestPtPointOBB(Point* p, OBB* b, Point* q);
 ////
 ////int TestSphereOBB(Sphere* s, OBB* b, Point* p)
@@ -317,22 +316,29 @@
 //
 
 
-// 関数の宣言
-// classやstruct以外の関数とかは、cppに書かないと、１つ以上の複数回定義されてるシンボルがあります
-// になってしまう。気を付けて。
-
-// 引き数を使ってワールドマトリクスを0から作る
-// GetWorldMatrixとの違いはこっちは引き数でもらうのでどんなのにも対応できる
-D3DXMATRIX CreateWorldMatrix(D3DXVECTOR3 Scale, D3DXVECTOR3 Rotation, D3DXVECTOR3 Position);
-
 
 
 // ここから新しいの
 
-
+struct SEGMENT;
 struct SPHERE;
 struct CAPSULE;
 struct OBB;
+
+struct SEGMENT
+{
+	D3DXVECTOR3 m_pos1;		// 線分の始点
+	D3DXVECTOR3	m_pos2;		// 線分の終点
+
+	SEGMENT() : m_pos1(0, 0, 0), m_pos2(0, 0, 0) {}
+
+	// pos1からpos2へのベクトルを返す
+	D3DXVECTOR3 GetVector()
+	{
+		return m_pos2 - m_pos1;
+	}
+
+};
 
 struct SPHERE 
 {
@@ -347,31 +353,59 @@ struct SPHERE
 struct CAPSULE
 {
 	float m_Radius;				// 半径
-	D3DXVECTOR3 m_PointUpper;	// カプセルの上の球体部分の球の中心座標
-	D3DXVECTOR3 m_PointLower;	// カプセルの下の球体部分の球の中心座標
+	float m_HalfHeight;				// 半径
+	D3DXVECTOR3 m_Center;		// 中心点の座標
+	//D3DXVECTOR3 m_PointUpper;	// カプセルの上の球体部分の球の中心座標
+	//D3DXVECTOR3 m_PointLower;	// カプセルの下の球体部分の球の中心座標
 
 	// コンストラクタ
-	CAPSULE() : m_Radius(0.5f), m_PointUpper(0, -0.5f, 0), m_PointLower(0, 0.5f, 0) {}
+	CAPSULE() : m_Radius(0.5f), m_HalfHeight(0.5f), m_Center(0.0f, 0.0f, 0.0f) {}
+	//CAPSULE() : m_Radius(0.5f), m_PointUpper(0, -0.5f, 0), m_PointLower(0, 0.5f, 0) {}
+
+	// カプセルをセット
+	void SetCapsule(float raius, float halfheight, D3DXVECTOR3 center)
+	{
+		m_Radius = raius;
+		m_HalfHeight = halfheight;
+		m_Center = center;
+	}
 
 	// カプセルの中心座標を取得
-	D3DXVECTOR3 GetCenter() const
+	D3DXVECTOR3 GetCenterPos() const
 	{
-		return m_PointUpper + ((m_PointLower - m_PointUpper) * 0.5f);
+		return m_Center;
+		//return m_PointUpper + ((m_PointLower - m_PointUpper) * 0.5f);
 	}
 
 	// カプセルの中心座標から上下2つの球の座標をセット
 	void SetCenter(const D3DXVECTOR3& Center) {
-		D3DXVECTOR3 CenterToPointA = ((m_PointUpper - m_PointLower) * 0.5f);
-		D3DXVECTOR3 CenterToPointB = ((m_PointLower - m_PointUpper) * 0.5f);
-		m_PointUpper = Center + CenterToPointA;
-		m_PointLower = Center + CenterToPointB;
+		//D3DXVECTOR3 CenterToPointA = ((m_PointUpper - m_PointLower) * 0.5f);
+		//D3DXVECTOR3 CenterToPointB = ((m_PointLower - m_PointUpper) * 0.5f);
+		//m_PointUpper = Center + CenterToPointA;
+		//m_PointLower = Center + CenterToPointB;
 	}
 	// 縦の半径を取得する
-	float GetHeightRadius()const {
-		D3DXVECTOR3 temp_calclength = m_PointLower - m_PointUpper;
-		float PointLen = D3DXVec3Length(&temp_calclength) * 0.5f;
-		PointLen += m_Radius;
-		return PointLen;
+	float GetHeightRadius()const 
+	{
+		return m_HalfHeight;
+		//D3DXVECTOR3 temp_calclength = m_PointLower - m_PointUpper;
+		//float PointLen = D3DXVec3Length(&temp_calclength) * 0.5f;
+		//PointLen += m_Radius;
+		//return PointLen;
+	}
+	// 上の球の座標を取得する
+	D3DXVECTOR3 GetUpperSpherePos()const
+	{
+		D3DXVECTOR3 rpos = m_Center;
+		rpos.y += m_HalfHeight - m_Radius;
+		return rpos;
+	}
+	// 下の球の座標を取得する
+	D3DXVECTOR3 GetLowerSpherePos()const
+	{
+		D3DXVECTOR3 rpos = m_Center;
+		rpos.y += -m_HalfHeight + m_Radius;
+		return rpos;
 	}
 };
 
@@ -392,7 +426,7 @@ struct OBB
 		CreateOBB(SizeVec, Matrix);
 	}
 
-	
+	// OBBの全てを設定してくれる
 	void CreateOBB(const D3DXVECTOR3& Size, const D3DXMATRIX& Matrix) 
 	{
 		m_Center.x = Matrix._41;
@@ -406,7 +440,7 @@ struct OBB
 			Size.y * D3DXVec3Length(&VecY),
 			Size.z * D3DXVec3Length(&VecZ)
 		);
-		m_Size *= 0.5f;
+		//m_Size *= 0.5f;
 		//回転を得る
 		
 		D3DXVec3Normalize(&m_Rot[0] , &VecX); 
@@ -561,7 +595,11 @@ static bool SPHERE_OBB(const SPHERE& sp, const OBB& obb, D3DXVECTOR3& retvec)
 	D3DXVECTOR3 v = retvec - sp.m_Center;
 	return D3DXVec3Dot(&v, &v) <= sp.m_Radius * sp.m_Radius;
 }
-
+//static bool SPHERE_OBB(const SPHERE& sp, const OBB& obb, bsm::Vec3& retvec) {
+//	ClosestPtPointOBB(sp.m_Center, obb, retvec);
+//	bsm::Vec3 v = retvec - sp.m_Center;
+//	return bsm::dot(v, v) <= sp.m_Radius * sp.m_Radius;
+//}
 
 
 //--------------------------------------------------------------------------------------
@@ -599,21 +637,26 @@ static void ClosetPtPointSegment(const D3DXVECTOR3& c,
 		@param[in]	cp	カプセル
 		@param[in]	obb	OBB
 		@param[out]	flg	2つ球のとの位置関係
-		@return	最近接点
+		@return	最近接点(カプセルの)
 		*/
 		//--------------------------------------------------------------------------------------
-static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& flg) {
-	SPHERE Sp;
-	Sp.m_Center = cp.m_PointUpper;
+static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& flg) 
+{
+	// 計算しやすいように取得しておく
+	D3DXVECTOR3 UpperPos = cp.GetUpperSpherePos();
+	D3DXVECTOR3 LowerPos = cp.GetLowerSpherePos();
+	SPHERE Sp;	// 変数の準備
+	Sp.m_Center = UpperPos;
 	Sp.m_Radius = cp.m_Radius;
+
 	D3DXVECTOR3 retvec;
 	//スタート位置で最近接点を得る
 	SPHERE_OBB(Sp, obb, retvec);
 	//内積を図る
-	D3DXVECTOR3 Base = cp.m_PointLower - cp.m_PointUpper;
+	D3DXVECTOR3 Base = LowerPos - UpperPos;
 	//Base.normalize();
 	D3DXVec3Normalize(&Base, &Base);
-	D3DXVECTOR3 Dest = retvec - cp.m_PointUpper;
+	D3DXVECTOR3 Dest = retvec - UpperPos;
 	float dot = D3DXVec3Dot(&Base, &Dest);
 	//float dot = bsm::dot(Base, Dest);
 	if (dot < 0) {
@@ -622,21 +665,21 @@ static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& f
 		flg = -1;
 		return retvec;
 	}
-	D3DXVECTOR3 LU = cp.m_PointLower - cp.m_PointUpper;
+	D3DXVECTOR3 LU = LowerPos - UpperPos;
 	float  size = D3DXVec3Length(&LU);
 	if (dot > size) {
 		//終点より先にある
-		Sp.m_Center = cp.m_PointLower;
+		Sp.m_Center = LowerPos;
 		SPHERE_OBB(Sp, obb, retvec);
 		//終点で最近接点をとる
 		flg = 1;
 		return retvec;
 	}
 	//中心とobbの最近接点を得る
-	ClosestPtPointOBB(cp.GetCenter(), obb, retvec);
+	ClosestPtPointOBB(cp.GetCenterPos(), obb, retvec);
 	float t;
 	D3DXVECTOR3 SegPoint;
-	ClosetPtPointSegment(retvec, cp.m_PointUpper, cp.m_PointLower, t, SegPoint);
+	ClosetPtPointSegment(retvec, UpperPos, LowerPos, t, SegPoint);
 	D3DXVECTOR3 Span = retvec - SegPoint;
 	D3DXVec3Normalize(&Span, &Span);
 	/*Span.normalize();*/
@@ -678,7 +721,27 @@ static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& f
 
 
 
+// 関数の宣言
+// classやstruct以外の関数とかは、cppに書かないと、１つ以上の複数回定義されてるシンボルがあります
+// になってしまう。気を付けて。
 
+// 引き数を使ってワールドマトリクスを0から作る
+// GetWorldMatrixとの違いはこっちは引き数でもらうのでどんなのにも対応できる
+D3DXMATRIX CreateWorldMatrix(D3DXVECTOR3 Scale, D3DXVECTOR3 Rotation, D3DXVECTOR3 Position);
+bool CAPSULE_OBB(CAPSULE cp, OBB obb, D3DXVECTOR3 retvec);
+static bool CollisionTestSphereObb(const SPHERE& SrcSp, const D3DXVECTOR3& SrcVelocity,
+	const OBB& DestObb,
+	float StartTime, float EndTime, float& HitTime);
+bool colCapsuleCapsule(CAPSULE& c1, CAPSULE& c2, D3DXVECTOR3* p1, D3DXVECTOR3* p2, float* vd);
+float calcSegmentSegmentDist(SEGMENT seg1, SEGMENT seg2, D3DXVECTOR3& p1, D3DXVECTOR3& p2, float& t1, float& t2);
+float calcPointSegmentDist(D3DXVECTOR3& point, SEGMENT& seg, D3DXVECTOR3& h, float& t);
+float calcPointLineDist(D3DXVECTOR3& point, SEGMENT& segment, D3DXVECTOR3& h, float& t);
+bool isSharpAngleCalc3Point(const D3DXVECTOR3& p1, const D3DXVECTOR3& p2, const D3DXVECTOR3& p3);
+bool isSharpAngleCalcDot(D3DXVECTOR3 a, D3DXVECTOR3& b);
+void clamp01(float& v);
+float calcLineLineDist(SEGMENT& l1, SEGMENT& l2, D3DXVECTOR3& p1, D3DXVECTOR3& p2, float& t1, float& t2);
+bool isParallel(D3DXVECTOR3& a, D3DXVECTOR3& b);
+D3DXVECTOR3 cross(D3DXVECTOR3& a, D3DXVECTOR3& b);
 
 
 

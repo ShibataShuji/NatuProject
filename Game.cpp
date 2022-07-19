@@ -45,7 +45,7 @@ void Game::Init()
 	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(3.0f, 1.0f, 5.0f));
 
 	Platform* platform = AddGameObject<Platform>(1);
-	platform->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 5.0f));
+	platform->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 10.0f));
 	platform->SetScale(D3DXVECTOR3(3.0f, 1.0f, 3.0f));
 
 	for (int i = 0; i < 20; i++)

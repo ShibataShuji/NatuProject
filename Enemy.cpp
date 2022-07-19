@@ -25,8 +25,13 @@ void Enemy::Init()
 	//　カプセルサイズの設定
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x, m_Position.y, m_Position.z), 100.0f, 100.0f);
 	GetComponent<Collision>()->SetMovable(true);
-	GetComponent<Collision>()->SetCollisionType(CAPUSULE_COLLISION);
+	//GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
+	//GetComponent<Collision>()->LoadCollisionModel();
+	//GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(2.0f, 1.0f, 2.0f));
+
+	GetComponent<Collision>()->SetCollisionType(CAPSULE_COLLISION);
 	GetComponent<Collision>()->LoadCollisionModel();
+	GetComponent<Collision>()->SetCapsuleScale(1.0f, 1.5f);
 
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "vertexLightingVS.cso");

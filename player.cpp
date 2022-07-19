@@ -59,7 +59,7 @@ void Player::Init()
 	m_Model = new Model();
 	m_Model->Load("asset\\model\\torus.obj");
 
-	m_Position = D3DXVECTOR3(5.0f, 1.0f, 0.0f);
+	m_Position = D3DXVECTOR3(0.0f, 10.0f, 5.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Scale	   = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
@@ -76,6 +76,11 @@ void Player::Init()
 	GetComponent<Collision>()->SetMovable(true);
 	GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
 	GetComponent<Collision>()->LoadCollisionModel();
+	GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+
+	//GetComponent<Collision>()->SetCollisionType(CAPSULE_COLLISION);
+	//GetComponent<Collision>()->LoadCollisionModel();
+	//GetComponent<Collision>()->SetCapsuleScale(1.0f, 2.0f);		// カプセルはスフィアみたいに(1.0f,1.0f)にしたら0となってうまく処理が動かない。
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout,"vertexLightingVS.cso");
 
@@ -153,6 +158,10 @@ void Player::Update()
 	{
 		m_Rotation.y += 0.1f;
 	}
+	if (Input::GetKeyPress('R'))
+	{
+		m_Rotation.x += 0.1f;
+	}
 
 	// Fキーでリロードみたいな
 	if (Input::GetKeyPress('F'))
@@ -160,11 +169,14 @@ void Player::Update()
 		Player::SetBulletNumMax();
 	}
 
-	// ジャンプ
-	if (Input::GetKeyTrigger('J'))
+	// ジャンプ。接地している場合のみ可能
+	if (m_OnTheGround)
 	{
-		m_Velocity.y = 0.25f;
-		//m_temp_Velocity.y = 0.25f;
+		if (Input::GetKeyTrigger('J'))
+		{
+			m_Velocity.y = 0.25f;
+			//m_temp_Velocity.y = 0.25f;
+		}
 	}
 
 

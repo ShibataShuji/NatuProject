@@ -18,41 +18,31 @@
 
 // コリジョンタイプの値の設定
 static const int	BOX_COLLISION	   = 0;
-static const int	CAPUSULE_COLLISION = 1;
+static const int	CAPSULE_COLLISION = 1;
 
 class Collision : public CComponent
 {
 private:
-	//Point		m_CollisionOffset = { 0.0f, 0.0f, 0.0f };			// Offset
 	int			m_Collision_type = 0;		// カプセル子リジョンなのかボックスなのかとかを設定する
 	bool		m_Movable = false;
+	float		m_OnTheGroundCheckNormal = 0.7f;	// 0.0f~1.0f 接地判定の時、衝突した時の方向ベクトルyがこれ以上のときに接地判定をtrueにする
+	
 
+	// すべてのコリジョンタイプで使うやつ。Radius = Scale.xで考える
+	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
+	D3DXVECTOR3 m_ColRotation = { 0.0f, 0.0f, 0.0f };
 
-	// カプセルコリジョン
-	D3DXVECTOR2 m_Capusule_Size = D3DXVECTOR2(50.0f, 40.0f);		// カプセルの上下のスフィアの半径と、真ん中のボックスの高さ
+	OBB			m_obb;
+	CAPSULE		m_capsule;
 
-	// スフィアコリジョン
-	float		m_Sphere_Radius = 50.0f;			// スフィアの半径
-
-	// ボックスコリジョン
-	D3DXVECTOR2 m_Box_Size = D3DXVECTOR2(20.0f, 20.0f);				// ボックスコリジョンの横幅と縦幅
-
-	//Capsule		m_Capsule;
 
 	Model* m_ModelA;
 	Model* m_ModelB;
 	Model* m_ModelC;
 
-	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
-	D3DXVECTOR3 m_ColRotation = { 0.0f, 0.0f, 0.0f };
-
 	ID3D11VertexShader* m_VertexShader;
 	ID3D11PixelShader* m_PixelShader;
 	ID3D11InputLayout* m_VertexLayout;
-
-
-	OBB			m_obb;
-	CAPSULE		m_capsule;
 
 
 
@@ -74,7 +64,7 @@ public:
 			m_ModelC = new Model();
 			m_ModelC->Load("asset\\model\\ColCube.obj");
 		}
-		if (m_Collision_type == CAPUSULE_COLLISION)
+		if (m_Collision_type == CAPSULE_COLLISION)
 		{
 			m_ModelA = new Model();
 			m_ModelA->Load("asset\\model\\ColCylinder.obj");
@@ -121,25 +111,43 @@ public:
 		// シーンをゲットしておく
 		Scene* scene = Manager::GetScene();
 
-		// 計算用の変数をゲット
-		//D3DXVECTOR3 t_Position = m_ParentGameObject->GetTempPosition();
-		//D3DXVECTOR3 t_Velocity = m_ParentGameObject->GetTempVelocity();
+		// 接地判定を毎回falseにリセットしておく。でも他のコリジョンでtrueになったものをリセットしないようにtempで確認
+		if(!m_ParentGameObject->GetTempOnTheGround())
+			m_ParentGameObject->SetOnTheGround(false);			// リセット
+
+
+		// コリジョンタイプによって回転の保存の仕方が違う?
+		if (m_Collision_type == BOX_COLLISION)
+		{
+			m_ColRotation = m_ParentGameObject->GetRotation(); 
+
+		}
+		else if (m_Collision_type == CAPSULE_COLLISION)
+		{
+			// カプセルは縦固定
+			m_ColRotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			//m_ColRotation = m_ParentGameObject->GetRotation();		// 一応これでカプセルも回転するけど球それぞれで回転
+		}
+
+
+
+		// 計算用に使う変数の準備
 		D3DXVECTOR3 t_Position;
 		D3DXVECTOR3 t_Velocity;
-
-		// WorldMatrixを取得しておく
-		D3DXMATRIX selfMatrix = m_ParentGameObject->GetWorldMatrix();
-
 		t_Position = m_ParentGameObject->GetPosition();		// ゲット
 		t_Velocity = m_ParentGameObject->GetVelocity();		// ゲット
 
-		m_capsule.m_Radius = 0.5f;
-		m_capsule.SetCenter(t_Position);
+		// WorldMatrixを取得しておく(Scale,Rotation,Posのデータ)
+		D3DXMATRIX selfMatrix = m_ParentGameObject->GetWorldMatrix();
 
-		m_obb.CreateOBB(D3DXVECTOR3(0.5f, 0.5f, 0.5f), selfMatrix);
+		// OBBの更新
+		m_obb.CreateOBB(m_ColScale, selfMatrix);
+
+		// カプセルの更新
+		m_capsule.SetCapsule(m_ColScale.x, m_ColScale.y, t_Position);
 
 		int AAA = 111;
-		_RPTN(_CRT_WARN, "deleting %f\n", selfMatrix._11);
+		//_RPTN(_CRT_WARN, "deleting %f\n", selfMatrix._11);
 
 
 		// 全てのゲームオブジェクトを取得
@@ -155,43 +163,90 @@ public:
 			// 全てのオブジェクトの中からCollisionコンポーネントを持っているものだけを取得
 			if (other->HasComponent<Collision>())
 			{
+				//static const int	BOX_COLLISION = 0;
+				//static const int	CAPSULE_COLLISION = 1;
+
 				// WorldMatrixを取得しておく
 				D3DXMATRIX otherMatrix = other->GetWorldMatrix(); 
-				
-				other->GetComponent<Collision>()->m_obb.CreateOBB(D3DXVECTOR3(0.5f, 0.5f, 0.5f), otherMatrix);
 
-				//Mat4x4
-
-				int flagu = 0;
-				D3DXVECTOR3 ret  = ClosestPtCapsuleOBB(m_capsule, other->GetComponent<Collision>()->m_obb, flagu);
-				//ClosestPtPointOBB(t_Position, other->GetComponent<Collision>()->m_obb, ret);
-				int asdd = 0;
-
-				t_Position = m_ParentGameObject->GetPosition();		// ゲット
-				D3DXVECTOR3 distance = ret - t_Position;
-				float length = D3DXVec3Length(&distance);
-
-
-				if (m_ParentGameObject->Gettagnum() == 2)
+				// カプセル(自分)とOBB(相手)の衝突だったら
+				if (m_Collision_type == CAPSULE_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == BOX_COLLISION)
 				{
-					if (length <= 0.5f)
-					{
-						float abb = 4.0f;
-						other->SetVelocity(D3DXVECTOR3(0, 0.1f, 0));
-						
-						//_RPTN(_CRT_WARN, "deleting %f\n", selfMatrix[2]);
-
-						asdd = 4;
-					}
+					CapsuleOBB(this, other->GetComponent<Collision>());
 				}
-
-
-
+				// OBB(自分)とカプセル(相手)の衝突だったら
+				else if (m_Collision_type == BOX_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == CAPSULE_COLLISION)
+				{
+					CapsuleOBB(other->GetComponent<Collision>(), this);
+				}
 				// カプセル(自分)とカプセル(相手)の衝突だったら
-				if (m_Collision_type == CAPUSULE_COLLISION)
+				else if (m_Collision_type == CAPSULE_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == CAPSULE_COLLISION)
 				{
-					//CapsuleCapsule(other, &t_Position);
+					CapsuleCapsule(this, other->GetComponent<Collision>());
 				}
+
+				//if (m_ParentGameObject->Gettagnum() == 2)
+				//{
+				//	// cp_Capsule にはカプセル側の最接近点の座標が取得できる(Closest point 最接近点)
+				//	int flag;
+				//	D3DXVECTOR3 cp_Capsule;
+				//	cp_Capsule = ClosestPtCapsuleOBB(m_capsule, other->GetComponent<Collision>()->m_obb, flag);
+
+				//	// 今のままだとカプセル側の最接近点がカプセルの外周なので、中心のラインで計算するように戻す(y座標は維持or上下の球体の場合戻す)
+				//	D3DXVECTOR3 cp_CapsuleCenterLine = cp_Capsule;
+				//	cp_CapsuleCenterLine.x = m_capsule.GetCenterPos().x;
+				//	cp_CapsuleCenterLine.z = m_capsule.GetCenterPos().z;
+				//	if (cp_Capsule.y > m_capsule.GetCenterPos().y)
+				//		cp_CapsuleCenterLine.y = m_capsule.GetUpperSpherePos().y;
+				//	if (cp_Capsule.y < m_capsule.GetCenterPos().y)
+				//		cp_CapsuleCenterLine.y = m_capsule.GetLowerSpherePos().y;
+
+				//	// cp_OBB にはOBB側の最接近点の座標が取得できる
+				//	D3DXVECTOR3 cp_OBB;
+				//	ClosestPtPointOBB(cp_CapsuleCenterLine, other->GetComponent<Collision>()->m_obb, cp_OBB);
+
+				//	// distance カプセルからみたOBBへの最短距離(ベクトル)
+				//	D3DXVECTOR3 distance;
+				//	distance = cp_OBB - cp_CapsuleCenterLine;
+
+				//	// length カプセルからOBBへの最短距離
+				//	float length;
+				//	length = D3DXVec3Length(&distance);
+
+				//	// overlaplength カプセルとOBBの重なっている距離
+				//	float overlaplength;
+				//	overlaplength = m_capsule.m_Radius - length;
+				//	// 方向ベクトルの準備
+				//	D3DXVECTOR3 normal;
+				//	D3DXVec3Normalize(&normal, &distance);
+
+				//	// 衝突してたらの処理
+				//	if (length <= m_capsule.m_Radius)
+				//	{
+				//		// 重なっていたら戻す処理
+				//		t_Position = m_ParentGameObject->GetPosition();		// ゲット
+				//		D3DXVECTOR3 backVector;
+				//		backVector = normal * overlaplength;	// 方向ベクトルのむきに重なっている距離分戻す
+
+				//		OverlapToBackPosition(m_ParentGameObject, other, backVector);		// この中でセットしている
+
+				//		// これより下で衝突をしているならば接地しているとみなす
+				//		float OnTheGroundHeight;
+				//		OnTheGroundHeight = m_capsule.GetLowerSpherePos().y - m_capsule.m_Radius * (1.0f - m_OnTheGroundCoefficient);
+
+
+				//		// 接地判定処理。flag == 1で上にいる。-1で下にいる。0で横
+				//		if (flag == 1 && t_Velocity.y < 0.0f && cp_Capsule.y < OnTheGroundHeight)
+				//		{
+				//			m_ParentGameObject->SetOnTheGround(true);
+				//			m_ParentGameObject->SetVelocity_y(0.0f);
+				//		}
+				//	}
+				//}
+
+
+
+				
 			}
 		}
 
@@ -218,22 +273,10 @@ public:
 		if (t_Position.y < groundHeight && t_Velocity.y < 0.0f)
 		{
 			m_ParentGameObject->SetPosition_y(groundHeight);
+			m_ParentGameObject->SetOnTheGround(true);
 			m_ParentGameObject->SetVelocity_y(0.0f);
-			//t_Position.y = groundHeight;
-			//t_Velocity.y = 0.0f;
 		}
 
-
-
-
-		//// m_TempVelocityの更新
-		//m_ParentGameObject->SetTempVelocity(t_Velocity);
-
-		//// m_Positionの更新
-		//m_ParentGameObject->SetTempPosition(t_Position);
-
-		//// 本物にTemporaryを更新
-		//m_ParentGameObject->TemporarySetUpdate();
 	}
 
 	void Draw() override
@@ -247,84 +290,39 @@ public:
 
 		if (m_Collision_type == BOX_COLLISION)
 		{
-			D3DXVECTOR3 OBBpos;
-			OBBpos.x = m_obb.m_Center.x;
-			OBBpos.y = m_obb.m_Center.y;
-			OBBpos.z = m_obb.m_Center.z;
-
-			D3DXVECTOR3 OBBScale;
-			OBBScale.x = m_obb.m_Size.x;
-			OBBScale.y = m_obb.m_Size.y;
-			OBBScale.z = m_obb.m_Size.z;
+			D3DXMATRIX world;
 
 			// ワールドマトリクス設定
-			D3DXMATRIX world, scale, rot, trans;
-			D3DXMatrixScaling(&scale, OBBScale.x, OBBScale.y, OBBScale.z);
-			D3DXMatrixRotationYawPitchRoll(&rot, m_ColRotation.y, m_ColRotation.x, m_ColRotation.z);
-			D3DXMatrixTranslation(&trans, OBBpos.x, OBBpos.y, OBBpos.z);
-			world = scale * rot * trans;
+			world = CreateWorldMatrix(m_obb.m_Size, m_ColRotation, m_obb.m_Center);	// 関数にまとめた
+			//world = CreateWorldMatrix(OBBScale, m_ColRotation, OBBpos);	// 関数にまとめた
 			Renderer::SetWorldMatrix(&world);
-
 			m_ModelA->Draw();
+
 		}
-
-		if (m_Collision_type == CAPUSULE_COLLISION)
+		else if (m_Collision_type == CAPSULE_COLLISION)
 		{
-			D3DXVECTOR3 Cylinder;
-			Cylinder.x = m_capsule.GetCenter().x;
-			Cylinder.y = m_capsule.GetCenter().y;
-			Cylinder.z = m_capsule.GetCenter().z;
-
 			D3DXVECTOR3 CylinderScale;
 			CylinderScale.x = m_capsule.m_Radius;
-			CylinderScale.y = m_capsule.GetHeightRadius();
+			CylinderScale.y = m_capsule.m_HalfHeight;
 			CylinderScale.z = m_capsule.m_Radius;
 
-			// ワールドマトリクス設定
-			D3DXMATRIX world, scale, rot, trans;
-			D3DXMatrixScaling(&scale, CylinderScale.x, CylinderScale.y, CylinderScale.z);
-			D3DXMatrixRotationYawPitchRoll(&rot, m_ColRotation.y, m_ColRotation.x, m_ColRotation.z);
-			D3DXMatrixTranslation(&trans, Cylinder.x, Cylinder.y, Cylinder.z);
-			world = scale * rot * trans;
-			Renderer::SetWorldMatrix(&world);
+			D3DXMATRIX world;
 
+			// ワールドマトリクス設定
+			world = CreateWorldMatrix(CylinderScale, m_ColRotation, m_capsule.GetCenterPos());	// 関数にまとめた
+			Renderer::SetWorldMatrix(&world);
 			m_ModelA->Draw();
 
-			D3DXVECTOR3 Sphere1;
-			Sphere1.x = m_capsule.m_PointUpper.x;
-			Sphere1.y = m_capsule.m_PointUpper.y;
-			Sphere1.z = m_capsule.m_PointUpper.z;
-
 			D3DXVECTOR3 SphereScale;
-			SphereScale.x = m_capsule.m_Radius;
-			SphereScale.y = m_capsule.m_Radius;
-			SphereScale.z = m_capsule.m_Radius;
-
-			//D3DXVECTOR3 vec;
-			//vec = m_Capsule.s.GetNormalVec();
+			SphereScale = D3DXVECTOR3(m_capsule.m_Radius, m_capsule.m_Radius, m_capsule.m_Radius);
 
 			// 上の球の描写
-			D3DXMatrixScaling(&scale, SphereScale.x, SphereScale.y, SphereScale.z);
-			D3DXMatrixRotationYawPitchRoll(&rot, m_ColRotation.y, m_ColRotation.x, m_ColRotation.z);
-			//D3DXMatrixTranslation(&trans, m_Capsule.s.GetPoint1().x, m_Capsule.s.GetPoint1().y, m_Capsule.s.GetPoint1().z);
-			//D3DXMatrixTranslation(&trans, m_Capsule.GetPoint1().x, m_Capsule.GetPoint1().y, m_Capsule.GetPoint1().z);
-			D3DXMatrixTranslation(&trans, Sphere1.x, Sphere1.y, Sphere1.z);
-			world = scale * rot * trans;
+			world = CreateWorldMatrix(SphereScale, m_ColRotation, m_capsule.GetUpperSpherePos());	// 関数にまとめた
 			Renderer::SetWorldMatrix(&world);
 			m_ModelB->Draw();
 
-			D3DXVECTOR3 Sphere2;
-			Sphere2.x = m_capsule.m_PointLower.x;
-			Sphere2.y = m_capsule.m_PointLower.y;
-			Sphere2.z = m_capsule.m_PointLower.z;
-
 			// 下の球の描写
-			D3DXMatrixScaling(&scale, SphereScale.x, SphereScale.y, SphereScale.z);
-			D3DXMatrixRotationYawPitchRoll(&rot, m_ColRotation.y, m_ColRotation.x, m_ColRotation.z);
-			//D3DXMatrixTranslation(&trans, m_Capsule.s.GetPoint2().x, m_Capsule.s.GetPoint2().y, m_Capsule.s.GetPoint2().z);
-			//D3DXMatrixTranslation(&trans, m_Capsule.GetPoint2().x, m_Capsule.GetPoint2().y, m_Capsule.GetPoint2().z);
-			D3DXMatrixTranslation(&trans, Sphere2.x, Sphere2.y, Sphere2.z);
-			world = scale * rot * trans;
+			world = CreateWorldMatrix(SphereScale, m_ColRotation, m_capsule.GetLowerSpherePos());	// 関数にまとめた
 			Renderer::SetWorldMatrix(&world);
 			m_ModelC->Draw();
 		}
@@ -339,7 +337,6 @@ public:
 	{
 		m_Collision_type = type;
 	}
-
 	int GetCollisionType()
 	{
 		return m_Collision_type;
@@ -349,6 +346,48 @@ public:
 	void SetMovable(bool movable)
 	{
 		m_Movable = movable;
+	}
+	bool GetMovable()
+	{
+		return m_Movable;
+	}
+
+	// 
+	void SetBoxScale(D3DXVECTOR3 scale)
+	{
+		m_ColScale = scale;
+	}
+
+	void SetCapsuleScale(float radius, float halfheight)
+	{
+		m_ColScale.x = radius;
+		m_ColScale.y = halfheight;
+		m_ColScale.z = radius;
+	}
+
+
+	// 衝突時の押し戻す処理
+	void OverlapToBackPosition(GameObject* self, GameObject* other, D3DXVECTOR3 backvector)
+	{
+
+		D3DXVECTOR3 self_Pos = self->GetPosition();		// ゲット
+		D3DXVECTOR3 other_Pos = other->GetPosition();					// ゲット
+
+		// 衝突した相手が動かないなら
+		if (!other->GetComponent<Collision>()->m_Movable)
+		{
+			// 自分だけポジションを変える
+			self->SetPosition(self_Pos - backvector);		// セット
+		}
+		else if (other->GetComponent<Collision>()->m_Movable)
+		{
+			// 衝突した相手が動くなら
+			// ベクトルを半分にする
+			backvector *= 0.5f;
+			// 自分と相手のポジションをベクトルの半分ずつ変える。(本当はその時の勢いとかもいれたがいいかも)
+			self->SetPosition(self_Pos - backvector);		// セット
+			other->SetPosition(other_Pos + backvector);		// セット
+		}
 	}
 
 
@@ -365,144 +404,149 @@ public:
 	//	m_Capsule.SetCapsule(Point(centerpos.x, centerpos.y, centerpos.z), radius, height);
 	//}
 
-	//void CapsuleCapsule(GameObject* other, D3DXVECTOR3* t_Position)
-	//{
-	//	// 衝突したときのカプセルの中心、コアになっている線分の中での最短距離になるとこの座標が返される
-	//	Point c_p1;
-	//	Point c_p2;
-	//	// c_p1からc_p2への単位方向ベクトル
-	//	Vec3 c_UnitNormal;
-	//	// 違反している距離
-	//	float c_vd;		// violatedistance
-	//	// 方向ベクトル。単位方向ベクトルと違反距離をかけた分移動させれば重なりを防ぐことができる。
-	//	Vec3 c_Normal;
-	//	// 衝突しているときの最短座標をここに保存する
-
-	//	if (colCapsuleCapsule(m_Capsule, other->GetComponent<Collision>()->m_Capsule, &c_p1, &c_p2, &c_vd))
-	//	{
-	//		// 衝突しているなら
 
 
-	//		// 重なった分座標を戻すt_Position
-	//		c_UnitNormal = (c_p1 - c_p2).getNorm();
-	//		c_Normal = c_UnitNormal * c_vd;				// 方向ベクトル		
+	// カプセルとボックスの当たり判定
+	void CapsuleOBB(Collision* capsule, Collision* obb)
+	{
+		// cp_Capsule にはカプセル側の最接近点の座標が取得できる(Closest point 最接近点)
+		int flag;
+		D3DXVECTOR3 cp_Capsule;
+		cp_Capsule = ClosestPtCapsuleOBB(capsule->m_capsule, obb->m_obb, flag);
 
-	//		// 当たっているものが動かないものなら
-	//		if (!other->GetComponent<Collision>()->m_Movable)
-	//		{
-	//			// 自分が動くものなら
-	//			if (m_Movable)
-	//			{
-	//				// 方向ベクトル分自分だけを戻してあげる
-	//				(*t_Position).x += c_Normal.x;
-	//				(*t_Position).y += c_Normal.y;
-	//				(*t_Position).z += c_Normal.z;
-	//			}
-	//		}
-	//		else
-	//		{
+		// 今のままだとカプセル側の最接近点がカプセルの外周なので、中心のラインで計算するように戻す(y座標は維持or上下の球体の場合戻す)
+		D3DXVECTOR3 cp_CapsuleCenterLine = cp_Capsule;
+		cp_CapsuleCenterLine.x = capsule->m_capsule.GetCenterPos().x;
+		cp_CapsuleCenterLine.z = capsule->m_capsule.GetCenterPos().z;
+		if (cp_Capsule.y > capsule->m_capsule.GetCenterPos().y)
+			cp_CapsuleCenterLine.y = capsule->m_capsule.GetUpperSpherePos().y;
+		if (cp_Capsule.y < capsule->m_capsule.GetCenterPos().y)
+			cp_CapsuleCenterLine.y = capsule->m_capsule.GetLowerSpherePos().y;
 
-	//			// 当たっているものも移動させたい場合どちらも影響0.5倍で動かす
-	//			// 自分が動くものなら
-	//			if (m_Movable)
-	//			{
-	//				(*t_Position).x += c_Normal.x * 0.5f;
-	//				(*t_Position).y += c_Normal.y * 0.5f;
-	//				(*t_Position).z += c_Normal.z * 0.5f;
-	//			}
+		// cp_OBB にはOBB側の最接近点の座標が取得できる
+		D3DXVECTOR3 cp_OBB;
+		ClosestPtPointOBB(cp_CapsuleCenterLine, obb->m_obb, cp_OBB);
 
-	//			// 当たっているもののポジションを変える。
-	//			// 本当はコリジョンにもう1個メンバ変数追加して、D3DXVECTOR3で他のコリジョンからの影響どれくらい受けたか
-	//			// を保存して、コリジョンのUpdateの最初にそれを仮の座標に追加してあげる計算のがいいかも。
-	//			D3DXVECTOR3 DX_c_Normal = { c_Normal.x, c_Normal.y, c_Normal.z };
-	//			DX_c_Normal *= -1;		// ベクトルを反転させる
+		// distance カプセルからみたOBBへの最短距離(ベクトル)
+		D3DXVECTOR3 distance;
+		distance = cp_OBB - cp_CapsuleCenterLine;
 
-	//			D3DXVECTOR3 HitObjPos = other->GetPosition();
-	//			D3DXVECTOR3 HitObjSetpos = HitObjPos + (DX_c_Normal * 0.5);
-	//			other->SetPosition(HitObjSetpos);
-	//		}
+		// length カプセルからOBBへの最短距離
+		float length;
+		length = D3DXVec3Length(&distance);
 
+		// overlaplength カプセルとOBBの重なっている距離
+		float overlaplength;
+		overlaplength = capsule->m_capsule.m_Radius - length;
+		// 方向ベクトルの準備
+		D3DXVECTOR3 normal;
+		D3DXVec3Normalize(&normal, &distance);
 
-	//		//t_Velocity.x = 0.0f;
-	//		//t_Velocity.y = 0.0f;
-	//		//t_Velocity.z = 0.0f;
+		// 衝突してたらの処理
+		if (length <= capsule->m_capsule.m_Radius)
+		{
+			D3DXVECTOR3 cap_Pos = capsule->m_ParentGameObject->GetPosition();		// ゲット
+			D3DXVECTOR3 cap_Vel = capsule->m_ParentGameObject->GetVelocity();		// ゲット
+			D3DXVECTOR3 obb_Pos = obb->m_ParentGameObject->GetPosition();			// ゲット
+			D3DXVECTOR3 obb_Vel = obb->m_ParentGameObject->GetVelocity();			// ゲット
 
-	//	}
-	//	else
-	//	{
-	//		// 衝突していないなら
-	//		int aaasd = 4;
-	//	}
-	//}
+			// 重なっていたら戻す処理
+			D3DXVECTOR3 backVector;
+			backVector = normal * overlaplength;	// 方向ベクトルのむきに重なっている距離分戻す
 
-	//void CapsuleBox(GameObject* other, D3DXVECTOR3* t_Position)
-	//{
-	//	// 衝突したときのカプセルの中心、コアになっている線分の中での最短距離になるとこの座標が返される
-	//	Point c_p1;
-	//	Point c_p2;
-	//	// c_p1からc_p2への単位方向ベクトル
-	//	Vec3 c_UnitNormal;
-	//	// 違反している距離
-	//	float c_vd;		// violatedistance
-	//	// 方向ベクトル。単位方向ベクトルと違反距離をかけた分移動させれば重なりを防ぐことができる。
-	//	Vec3 c_Normal;
-	//	// 衝突しているときの最短座標をここに保存する
-
-	//	if (colCapsuleCapsule(m_Capsule, other->GetComponent<Collision>()->m_Capsule, &c_p1, &c_p2, &c_vd))
-	//	{
-	//		// 衝突しているなら
+			OverlapToBackPosition(capsule->m_ParentGameObject, obb->m_ParentGameObject, backVector);		// この中でセットしている
 
 
-	//		// 重なった分座標を戻すt_Position
-	//		c_UnitNormal = (c_p1 - c_p2).getNorm();
-	//		c_Normal = c_UnitNormal * c_vd;				// 方向ベクトル		
+			// カプセル側接地判定処理。flag == 1で上にいる。-1で下にいる。0で横
+			//if (flag == 1 && cap_Vel.y < 0.0f && cp_Capsule.y < OnTheGroundHeight_cap)
+			if (flag == 1 && cap_Vel.y < 0.0f && -normal.y > capsule->m_OnTheGroundCheckNormal)
+			{
+				capsule->m_ParentGameObject->SetOnTheGround(true);
+				capsule->m_ParentGameObject->SetTempOnTheGround(true);
+				capsule->m_ParentGameObject->SetVelocity_y(0.0f);
+			}
 
-	//		// 当たっているものが動かないものなら
-	//		if (!other->GetComponent<Collision>()->m_Movable)
-	//		{
-	//			// 自分が動くものなら
-	//			if (m_Movable)
-	//			{
-	//				// 方向ベクトル分自分だけを戻してあげる
-	//				(*t_Position).x += c_Normal.x;
-	//				(*t_Position).y += c_Normal.y;
-	//				(*t_Position).z += c_Normal.z;
-	//			}
-	//		}
-	//		else
-	//		{
-
-	//			// 当たっているものも移動させたい場合どちらも影響0.5倍で動かす
-	//			// 自分が動くものなら
-	//			if (m_Movable)
-	//			{
-	//				(*t_Position).x += c_Normal.x * 0.5f;
-	//				(*t_Position).y += c_Normal.y * 0.5f;
-	//				(*t_Position).z += c_Normal.z * 0.5f;
-	//			}
-
-	//			// 当たっているもののポジションを変える。
-	//			// 本当はコリジョンにもう1個メンバ変数追加して、D3DXVECTOR3で他のコリジョンからの影響どれくらい受けたか
-	//			// を保存して、コリジョンのUpdateの最初にそれを仮の座標に追加してあげる計算のがいいかも。
-	//			D3DXVECTOR3 DX_c_Normal = { c_Normal.x, c_Normal.y, c_Normal.z };
-	//			DX_c_Normal *= -1;		// ベクトルを反転させる
-
-	//			D3DXVECTOR3 HitObjPos = other->GetPosition();
-	//			D3DXVECTOR3 HitObjSetpos = HitObjPos + (DX_c_Normal * 0.5);
-	//			other->SetPosition(HitObjSetpos);
-	//		}
+			// OBB側接地判定処理。
+			if (flag == -1 && obb_Vel.y < 0.0f && normal.y > obb->m_OnTheGroundCheckNormal)
+			{
+				obb->m_ParentGameObject->SetOnTheGround(true);
+				obb->m_ParentGameObject->SetTempOnTheGround(true);
+				obb->m_ParentGameObject->SetVelocity_y(0.0f);
+			}
 
 
-	//		//t_Velocity.x = 0.0f;
-	//		//t_Velocity.y = 0.0f;
-	//		//t_Velocity.z = 0.0f;
 
-	//	}
-	//	else
-	//	{
-	//		// 衝突していないなら
-	//		int aaasd = 4;
-	//	}
-	//}
+
+		}
+	}
+
+	// カプセルとカプセルの当たり判定
+	void CapsuleCapsule(Collision* self_capsule, Collision* other_capsule)
+	{
+		// 衝突したときのカプセルの中心、コアになっている線分の中での最短距離になるとこの座標が返される
+		D3DXVECTOR3 c_p1;
+		D3DXVECTOR3 c_p2;
+		// c_p1からc_p2への単位方向ベクトル
+		D3DXVECTOR3 c_UnitNormal;
+		// 違反している距離
+		float c_vd;		// violatedistance
+		// 方向ベクトル。単位方向ベクトルと違反距離をかけた分移動させれば重なりを防ぐことができる。
+		D3DXVECTOR3 c_Normal;
+		// 衝突しているときの最短座標をここに保存する
+
+		if (colCapsuleCapsule(self_capsule->m_capsule, other_capsule->m_capsule, &c_p1, &c_p2, &c_vd))
+		{
+			// 衝突しているなら
+
+			D3DXVECTOR3 scap_vel = self_capsule->m_ParentGameObject->GetVelocity();
+			D3DXVECTOR3 ocap_vel = other_capsule->m_ParentGameObject->GetVelocity();
+
+			// 重なった分座標を戻すt_Position
+			D3DXVECTOR3 tvec = c_p1 - c_p2;
+			D3DXVec3Normalize(&c_UnitNormal, &tvec);
+			c_Normal = c_UnitNormal * c_vd;				// 戻すベクトル		
+
+			OverlapToBackPosition(self_capsule->m_ParentGameObject, other_capsule->m_ParentGameObject, -c_Normal);
+
+
+			// カプセル側の接地判定処理
+			// これより下で衝突をしているならば接地しているとみなす
+			//float OnTheGroundHeight_cap;
+			//OnTheGroundHeight_cap = capsule->m_capsule.GetLowerSpherePos().y - capsule->m_capsule.m_Radius * (1.0f - capsule->m_OnTheGroundCoefficient);
+
+			// self側接地判定処理
+			if (scap_vel.y < 0.0f && c_UnitNormal.y > self_capsule->m_OnTheGroundCheckNormal)
+			{
+				self_capsule->m_ParentGameObject->SetOnTheGround(true);
+				self_capsule->m_ParentGameObject->SetTempOnTheGround(true);
+				self_capsule->m_ParentGameObject->SetVelocity_y(0.0f);
+			}
+			// other側接地判定処理
+			if (ocap_vel.y < 0.0f && -c_UnitNormal.y > other_capsule->m_OnTheGroundCheckNormal)
+			{
+				other_capsule->m_ParentGameObject->SetOnTheGround(true);
+				other_capsule->m_ParentGameObject->SetTempOnTheGround(true);
+				other_capsule->m_ParentGameObject->SetVelocity_y(0.0f);
+			}
+
+		}
+		else
+		{
+			// 衝突していないなら
+			int aaasd = 4;
+		}
+	}
+
+
 
 };
+
+
+
+
+//_RPTN(_CRT_WARN, "%f, %f, %f\n", cp_OBB.x, cp_OBB.y, cp_OBB.z);
+//_RPTN(_CRT_WARN, "%f, %f, %f\n", cp_Capsule.x, cp_Capsule.y, cp_Capsule.z);
+//_RPTN(_CRT_WARN, "%f, %f, %f\n", distance.x, distance.y, distance.z);
+//_RPTN(_CRT_WARN, "%f\n", length);
+////_RPTN(_CRT_WARN, "%f, %f, %f\n", normal.x, normal.y, normal.z);
+//_RPTN(_CRT_WARN, "%d\n", flag);

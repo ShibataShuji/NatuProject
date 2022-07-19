@@ -20,6 +20,9 @@ protected:	// アクセス指定子
 
 	int			m_TagNum = 0;
 
+	bool		m_OnTheGround = false;
+	bool		m_temp_OnTheGround = false;
+
 
 	// 計算用
 	D3DXVECTOR3 m_Old_Position;
@@ -79,6 +82,9 @@ public:
 		m_Old_Position = m_Position;
 		//m_temp_Position = m_Position;
 		//m_temp_Velocity = m_Velocity;
+
+		// 接地判定のTempのリセット。前フレームのが残らないようにここでリセットしておく。
+		m_temp_OnTheGround = false;
 
 
 		// playerとか子クラスのUpdateの後に来てほしいので、playerとか子クラスのUpdateの最後に書く。
@@ -253,6 +259,25 @@ public:
 		}
 		return false;
 	}
+
+
+	bool GetOnTheGround()
+	{
+		return m_OnTheGround;
+	}
+	void SetOnTheGround(bool setbool)
+	{
+		m_OnTheGround = setbool;
+	}
+	bool GetTempOnTheGround()
+	{
+		return m_temp_OnTheGround;
+	}
+	void SetTempOnTheGround(bool settempbool)
+	{
+		m_temp_OnTheGround = settempbool;
+	}
+
 
 };
 
