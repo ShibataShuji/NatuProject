@@ -57,13 +57,13 @@ void Enemy::Update()
 
 
 	// ジャンプ
-	if (Input::GetKeyTrigger('K'))
+	if (Input::GetKeyTrigger(DIK_K))
 	{
 		m_Velocity.y = 0.25f;
 	}
 
 	// ジャンプ
-	if (Input::GetKeyTrigger('O'))
+	if (Input::GetKeyTrigger(DIK_O))
 	{
 		m_Rotation.x += 0.1f;
 	}

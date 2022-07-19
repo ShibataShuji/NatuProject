@@ -127,44 +127,44 @@ void Player::Update()
 	D3DXVECTOR3 forward = GetForward();
 	D3DXVECTOR3 right = GetRight();
 
-	if (Input::GetKeyPress('A'))
+	if (Input::GetKeyPress(DIK_A))
 	{
 		m_Velocity -= right * 0.01;
 		//m_temp_Velocity -= right * 0.01;
 		//m_Position -= GetComponent<Rigidbody>()->GetVelocity() * 0.01f;
 	}
-	if (Input::GetKeyPress('D'))
+	if (Input::GetKeyPress(DIK_D))
 	{
 		m_Velocity += right * 0.01;
 		//m_temp_Velocity += right * 0.01;
 	}
 
-	if (Input::GetKeyPress('W'))
+	if (Input::GetKeyPress(DIK_W))
 	{
 		m_Velocity += forward * 0.01;
 		//m_temp_Velocity += forward * 0.01;
 	}
-	if (Input::GetKeyPress('S'))
+	if (Input::GetKeyPress(DIK_S))
 	{
 		m_Velocity -= forward * 0.01;
 		//m_temp_Velocity -= forward * 0.01;
 	}
 
-	if (Input::GetKeyPress('Q'))
+	if (Input::GetKeyPress(DIK_Q))
 	{
 		m_Rotation.y -= 0.1f;
 	}
-	if (Input::GetKeyPress('E'))
+	if (Input::GetKeyPress(DIK_E))
 	{
 		m_Rotation.y += 0.1f;
 	}
-	if (Input::GetKeyPress('R'))
+	if (Input::GetKeyPress(DIK_R))
 	{
 		m_Rotation.x += 0.1f;
 	}
 
 	// Fキーでリロードみたいな
-	if (Input::GetKeyPress('F'))
+	if (Input::GetKeyPress(DIK_F))
 	{
 		Player::SetBulletNumMax();
 	}
@@ -172,7 +172,7 @@ void Player::Update()
 	// ジャンプ。接地している場合のみ可能
 	if (m_OnTheGround)
 	{
-		if (Input::GetKeyTrigger('J'))
+		if (Input::GetKeyTrigger(DIK_J))
 		{
 			m_Velocity.y = 0.25f;
 			//m_temp_Velocity.y = 0.25f;
@@ -189,7 +189,7 @@ void Player::Update()
 
 	// アルファベット以外はVK_なんたらでだいたいいける。右クリックでマクロに飛ぶと他のも見れるよ
 	// トリガーは押した瞬間だけ
-	if (Input::GetKeyTrigger(VK_SPACE))
+	if (Input::GetKeyTrigger(DIK_SPACE))
 	{
 		// 弾が1発以上あるなら
 		if (m_BulletNum >= 1)

@@ -24,7 +24,7 @@ void Result::Update()
 {
 	Scene::Update();
 
-	if (Input::GetKeyTrigger(VK_RETURN))
+	if (Input::GetKeyTrigger(DIK_RETURN))
 	{
 		Manager::SetScene<Title>();
 	}

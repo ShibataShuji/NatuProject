@@ -20,7 +20,6 @@ Scene* Manager::m_Scene = NULL;			// ‚±‚ê‚Í.h‚Ì•û‚Ì‚â‚Â‚Å‘‚¢‚½‚æ‚¤‚É‚à‚Á‚©‚¢ŒÄ‚
 void Manager::Init()
 {
 	Renderer::Init();
-	Input::Init();
 	Audio::InitMaster();		// staticƒƒ\ƒbƒh‚È‚Ì‚Å::‚±‚ÌŒÄ‚Ñ•û
 
 	SetScene<Title>();
@@ -35,13 +34,11 @@ void Manager::Uninit()
 	delete m_Scene;
 
 	Audio::UninitMaster();
-	Input::Uninit();
 	Renderer::Uninit();
 }
 
 void Manager::Update()
 {
-	Input::Update();
 
 
 	m_Scene->Update();
