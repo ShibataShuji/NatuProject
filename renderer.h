@@ -55,7 +55,6 @@ private:
 	static ID3D11Buffer*			m_MaterialBuffer;
 	static ID3D11Buffer*			m_LightBuffer;
 
-
 	static ID3D11DepthStencilState* m_DepthStateEnable;
 	static ID3D11DepthStencilState* m_DepthStateDisable;
 
@@ -76,12 +75,28 @@ public:
 	static void SetMaterial(MATERIAL Material);
 	static void SetLight(LIGHT Light);
 
-	static ID3D11Device* GetDevice( void ){ return m_Device; }
-	static ID3D11DeviceContext* GetDeviceContext( void ){ return m_DeviceContext; }
+	//static ID3D11Device* GetDevice( void ){ return m_Device; }
+	//static ID3D11DeviceContext* GetDeviceContext( void ){ return m_DeviceContext; }
 
 
 
 	static void CreateVertexShader(ID3D11VertexShader** VertexShader, ID3D11InputLayout** VertexLayout, const char* FileName);
 	static void CreatePixelShader(ID3D11PixelShader** PixelShader, const char* FileName);
+
+
+	static D3D_FEATURE_LEVEL GetFeatureLevel() {return m_FeatureLevel;}
+	static ID3D11Device* GetDevice() {return m_Device;}
+	static ID3D11DeviceContext* GetDeviceContext() {return m_DeviceContext;}
+	static IDXGISwapChain* GetSwapChain() {return m_SwapChain;}
+	static ID3D11RenderTargetView* GetRenderTargetView() {return m_RenderTargetView;}
+	static ID3D11DepthStencilView* GetDepthStencilView() {return m_DepthStencilView;}
+
+	static ID3D11Buffer* GetWorldBuffer() {return m_WorldBuffer;}
+	static ID3D11Buffer* GetViewBuffer() {return m_ViewBuffer;}
+	static ID3D11Buffer* GetProjectionBuffer() {return m_ProjectionBuffer;}
+	static ID3D11Buffer* GetLightBuffer() {return m_LightBuffer;}
+
+	static ID3D11DepthStencilState* GetDepthStateEnable() {return m_DepthStateEnable;}
+	static ID3D11DepthStencilState* GetDepthStateDisable() {return m_DepthStateDisable;}
 
 };

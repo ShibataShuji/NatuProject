@@ -29,8 +29,10 @@ private:
 	
 
 	// すべてのコリジョンタイプで使うやつ。Radius = Scale.xで考える
-	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
 	D3DXVECTOR3 m_ColRotation = { 0.0f, 0.0f, 0.0f };
+	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
+	D3DXVECTOR3 m_ColInitScale = { 1.0f, 1.0f, 1.0f };
+
 
 	OBB			m_obb;
 	CAPSULE		m_capsule;
@@ -116,7 +118,13 @@ public:
 			m_ParentGameObject->SetOnTheGround(false);			// リセット
 
 
-		// コリジョンタイプによって回転の保存の仕方が違う?
+		// Scaleの更新
+		D3DXVECTOR3 ScaleRate = m_ParentGameObject->GetScaleRate();
+		m_ColScale.x = m_ColInitScale.x * ScaleRate.x;
+		m_ColScale.y = m_ColInitScale.y * ScaleRate.y;
+		m_ColScale.z = m_ColInitScale.z * ScaleRate.z;
+
+		// コリジョンタイプによる更新
 		if (m_Collision_type == BOX_COLLISION)
 		{
 			m_ColRotation = m_ParentGameObject->GetRotation(); 
@@ -138,7 +146,8 @@ public:
 		t_Velocity = m_ParentGameObject->GetVelocity();		// ゲット
 
 		// WorldMatrixを取得しておく(Scale,Rotation,Posのデータ)
-		D3DXMATRIX selfMatrix = m_ParentGameObject->GetWorldMatrix();
+		//D3DXMATRIX selfMatrix = m_ParentGameObject->GetWorldMatrix();
+		D3DXMATRIX selfMatrix = CreateWorldMatrix(m_ColScale, m_ColRotation, t_Position);
 
 		// OBBの更新
 		m_obb.CreateOBB(m_ColScale, selfMatrix);
@@ -149,12 +158,21 @@ public:
 		int AAA = 111;
 		//_RPTN(_CRT_WARN, "deleting %f\n", selfMatrix._11);
 
+		//// 平面作る計算。ここでやらないけど今はテストでやってる
+		//m_obb.CreatePlaneState(m_ColRotation);
+		//// m_obb.m_Normal[1].x
+		//
+		//int asdff = 4;
+		//_RPTN(_CRT_WARN, "AAA %f, %f\n", m_obb.m_Normal[1].x, m_obb.m_Normal[1].z);
+
+
+
 
 		// 全てのゲームオブジェクトを取得
 		std::vector<GameObject*> allObj = scene->GetAllGameObjects(1);
 		for (GameObject* other : allObj)
 		{
-			// otherに衝突相手の親オブジェクトのポインターが入っている
+			// otherに衝突相手の親オブジェクト(ゲームオブジェクト)のポインターが入っている
 
 			// 自分だったらコンテニュー
 			if (other == m_ParentGameObject)
@@ -163,6 +181,9 @@ public:
 			// 全てのオブジェクトの中からCollisionコンポーネントを持っているものだけを取得
 			if (other->HasComponent<Collision>())
 			{
+				// 省略用にotherのコリジョンのポインタを用意
+				Collision* other_collision = other->GetComponent<Collision>();
+
 				//static const int	BOX_COLLISION = 0;
 				//static const int	CAPSULE_COLLISION = 1;
 
@@ -183,6 +204,195 @@ public:
 				else if (m_Collision_type == CAPSULE_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == CAPSULE_COLLISION)
 				{
 					CapsuleCapsule(this, other->GetComponent<Collision>());
+				}
+				// OBB(自分)とOBB(相手)の衝突だったら
+				else if (m_Collision_type == BOX_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == BOX_COLLISION)
+				{
+					// 省略用に相手のobbのポインタを用意。自分はm_obb
+					OBB* other_obb = &other_collision->m_obb;
+
+					//bool bbb = OBBOBB(this, other->GetComponent<Collision>());
+
+					//int ccc = 10;
+					//if (bbb == false)
+					//	ccc = 0;
+					//else
+					//	ccc = 1;
+					////_RPTN(_CRT_WARN, "FPS %d\n", ccc);
+
+
+					// 値の取得・準備
+					// 分割数 DivisionNum
+					int DivNum = 100;
+
+					// Postion
+					D3DXVECTOR3 self_oldPos = m_ParentGameObject->GetOldPosition();		// 前回のフレームでの座標
+					D3DXVECTOR3 other_oldPos = other->GetOldPosition();
+					D3DXVECTOR3 self_AfterPos = m_ParentGameObject->GetPosition();		// 衝突しなかった場合の最終移動座標
+					D3DXVECTOR3 other_AfterPos = other->GetPosition();
+					D3DXVECTOR3 self_movementFrame = self_AfterPos - self_oldPos;		// このフレームでの移動ベクトル
+					D3DXVECTOR3 other_movementFrame = other_AfterPos - other_oldPos;
+					float self_VecLength = D3DXVec3Length(&self_movementFrame);			// ベクトルの長さ
+					float other_VecLength = D3DXVec3Length(&other_movementFrame);
+					D3DXVECTOR3 self_Normal;
+					D3DXVECTOR3 other_Normal;
+					D3DXVec3Normalize(&self_Normal, &self_movementFrame);				// このフレームでの方向ベクトル(単位ベクトル)を作っておく
+					D3DXVec3Normalize(&other_Normal, &other_movementFrame);
+
+					D3DXVECTOR3 self_movementOne = self_movementFrame / DivNum;		// 分割したときの１回での移動距離
+					D3DXVECTOR3 other_movementOne = other_movementFrame / DivNum;
+
+
+					// Rotation
+					D3DXVECTOR3 self_oldRotation = m_ParentGameObject->GetOldRotation();		// 前回のフレームでの回転
+					D3DXVECTOR3 other_oldRotation = other->GetOldRotation();
+					D3DXVECTOR3 self_AfterRotation = m_ParentGameObject->GetRotation();		// 衝突しなかった場合の最終回転
+					D3DXVECTOR3 other_AfterRotation = other->GetRotation();
+					D3DXVECTOR3 self_RotationFrame = self_AfterRotation - self_oldRotation;		// 衝突しない場合のこのフレームでの回転量
+					D3DXVECTOR3 other_RotationFrame = other_AfterRotation - other_oldRotation;
+
+					D3DXVECTOR3 self_RotationOne = self_RotationFrame / DivNum;		// 分割したときの１回での回転量
+					D3DXVECTOR3 other_RotationOne = other_RotationFrame / DivNum;
+
+
+					// Scale
+					D3DXVECTOR3 self_oldScale = m_ParentGameObject->GetOldScaleRate();		// 前回のフレームでのScaleRate
+					self_oldScale.x *= m_ColInitScale.x;
+					self_oldScale.y *= m_ColInitScale.y;
+					self_oldScale.z *= m_ColInitScale.z;
+					D3DXVECTOR3 other_oldScale = other->GetOldScaleRate();
+					other_oldScale.x *= m_ColInitScale.x;
+					other_oldScale.y *= m_ColInitScale.y;
+					other_oldScale.z *= m_ColInitScale.z;
+					D3DXVECTOR3 self_AfterScale = m_ParentGameObject->GetScaleRate();		// 衝突しなかった場合の最終ScaleRate
+					self_AfterScale.x *= m_ColInitScale.x;
+					self_AfterScale.y *= m_ColInitScale.y;
+					self_AfterScale.z *= m_ColInitScale.z;
+					D3DXVECTOR3 other_AfterScale = other->GetScaleRate();
+					other_AfterScale.x *= m_ColInitScale.x;
+					other_AfterScale.y *= m_ColInitScale.y;
+					other_AfterScale.z *= m_ColInitScale.z;
+					D3DXVECTOR3 self_ScaleFrame = self_AfterScale - self_oldScale;		// 衝突しない場合のこのフレームでのScaleRateの変化量
+					D3DXVECTOR3 other_ScaleFrame = other_AfterScale - other_oldScale;
+
+					D3DXVECTOR3 self_ScaleOne = self_ScaleFrame / DivNum;		// 分割したときの１回でのScaleRateの変化量
+					D3DXVECTOR3 other_ScaleOne = other_ScaleFrame / DivNum;
+
+					// 衝突していたら
+					if (OBBOBB(this, other->GetComponent<Collision>()))
+					{
+						
+
+						// 相手が動かないなら自分だけ動かす処理
+						if (other->GetComponent<Collision>()->m_Movable == false)
+						{
+							//// WorldMatrixをOldで作り直すold
+							D3DXMATRIX self_oldMatrix = CreateWorldMatrix(self_oldScale, self_oldRotation, self_oldPos);
+
+							// OBBを作り直すold
+							OBB self_oldOBB;
+							self_oldOBB.CreateOBB(self_oldScale, self_oldMatrix);
+
+							D3DXVECTOR3 self_bcPos;	//before collision 衝突する直前
+							D3DXVECTOR3 self_bcRot;
+							D3DXVECTOR3 self_bcSca;
+							int MaxTrial = 50;
+							int low = 0;
+							int high = DivNum;
+							//int mid = (low + high) / 2;
+							int mid;
+							int oldmid = -1;
+							int ggg = 10;
+							for (int i = 0; i < MaxTrial; i++)
+							{
+								mid = (low + high) / 2;
+
+								// 2回連続でmidが同じ値だったら
+								if (oldmid == mid)
+								{
+									_RPTN(_CRT_WARN, "GGG %d\n", ggg);
+									break;
+								}
+
+								self_bcPos = self_oldPos + (self_movementOne * mid);
+								self_bcRot = self_oldRotation + (self_RotationOne * mid);
+								self_bcSca = self_oldScale + (self_ScaleOne * mid);
+
+								//// WorldMatrixを作り直すnew
+								D3DXMATRIX self_newMatrix = CreateWorldMatrix(self_bcSca, self_bcRot, self_bcPos);
+
+								// OBBを作り直すnew
+								OBB self_bcOBB;
+								self_bcOBB.CreateOBB(self_bcSca, self_newMatrix);
+
+								// OBBの上書き
+								m_obb = self_bcOBB;
+								
+								if (OBBOBB(this, other->GetComponent<Collision>()))
+								{
+									// 衝突しているなら、分割数を更に戻す
+									high = mid;
+									ggg = 1;
+								}
+								else
+								{
+									// 衝突していないなら、分割数を更に進める
+									low = mid;
+									ggg = 0;
+								}
+								
+								//if (low >= high)
+								//{
+								//	_RPTN(_CRT_WARN, "GGG %d\n", ggg);
+								//	break;
+								//}
+
+								oldmid = mid;	// midの値の保存
+							}
+							//// 分割した後衝突ギリギリだった数がmidなので、mid以降の値分滑らせる必要がある
+							//// 方向ベクトルを、衝突相手のOBBの面に対して平行になるように曲げる。self_movementFrame
+							//float RemainingRatio = (float)mid / (float)DivNum;			// 残りの割合
+							//float RemainingLenght = self_VecLength * RemainingRatio;	// 残りの長さ
+							//D3DXVECTOR3 self_RemainingVec = self_movementFrame * RemainingRatio;		// 残りの移動ベクトル
+							
+							// midには衝突直前(衝突していない)(mid+1は衝突している)
+							// 衝突直前の情報が求められたので次に
+							// 片方のOBBの8つの頂点のうちどの頂点がもう片方のOBBに１番近いかを求める
+							// まずは平面に使う情報を更新させる(m_obbにはself_bcOBBを上書き済みなのでここでは書かなくてよい)
+							m_obb.CreatePlaneState(self_bcRot);						// メンバ変数の平面に使うものが更新される
+							other_obb->CreatePlaneState(other_AfterRotation);		// 相手側はこの場合動かない(こちら側の影響を受けない)のでこれで。
+
+							// AのOBBに対して一番近いBのOBBの頂点の添え字が返ってくる
+							// この後戻す処理をしたい方をBに設定してあげるといい。
+							int NearVer = GetOBBOBBNearestVertex(*other_obb, m_obb);
+
+							// 次にその頂点がどの面と一番近いのかを計算する
+							int NearPlane = GetPointOBBNearestPlane(m_obb.m_VertexPos[NearVer], *other_obb);
+
+							_RPTN(_CRT_WARN, "NearPlane %d\n", NearPlane);
+
+
+							// 頂点が１つも衝突していない場合は線分同士が衝突しているので
+							// ClosestPtSegmentSegment を使う
+
+							//// 計算で求めた衝突しないぎりぎりの時間に戻してあげる
+							//m_ParentGameObject->SetPosition(self_bcPos);
+							//m_ParentGameObject->SetRotation(self_bcRot);
+							//m_ParentGameObject->SetScaleRate(self_bcSca);
+							
+							//m_ParentGameObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+							//m_ParentGameObject->SetPosition(D3DXVECTOR3(-3.0f, 0.0f, 0.0f));
+
+							//_RPTN(_CRT_WARN, "RRR %d\n", rrr);
+
+							
+
+						}
+
+					}
+
+
+
 				}
 
 				//if (m_ParentGameObject->Gettagnum() == 2)
@@ -293,7 +503,8 @@ public:
 			D3DXMATRIX world;
 
 			// ワールドマトリクス設定
-			world = CreateWorldMatrix(m_obb.m_Size, m_ColRotation, m_obb.m_Center);	// 関数にまとめた
+			//world = CreateWorldMatrix(m_obb.m_Size, m_ColRotation, m_obb.m_Center);	// 関数にまとめた
+			world = CreateWorldMatrix(m_ColScale, m_ColRotation, m_obb.m_Center);	// 関数にまとめた
 			//world = CreateWorldMatrix(OBBScale, m_ColRotation, OBBpos);	// 関数にまとめた
 			Renderer::SetWorldMatrix(&world);
 			m_ModelA->Draw();
@@ -330,6 +541,14 @@ public:
 
 
 
+
+	}
+
+
+	void SetColInitScale(D3DXVECTOR3 setcolscale)
+	{
+		m_ColInitScale = setcolscale;
+		m_ColScale = m_ColInitScale;
 	}
 
 
@@ -353,16 +572,22 @@ public:
 	}
 
 	// 
-	void SetBoxScale(D3DXVECTOR3 scale)
+	void SetBoxScale(D3DXVECTOR3 initscale)
 	{
-		m_ColScale = scale;
+		//m_ColScale = scale;
+		SetColInitScale(initscale);
 	}
 
 	void SetCapsuleScale(float radius, float halfheight)
 	{
-		m_ColScale.x = radius;
-		m_ColScale.y = halfheight;
-		m_ColScale.z = radius;
+		//m_ColScale.x = radius;
+		//m_ColScale.y = halfheight;
+		//m_ColScale.z = radius;
+		D3DXVECTOR3 initscale;
+		initscale.x = radius;
+		initscale.y = halfheight;
+		initscale.z = radius;
+		SetColInitScale(initscale);
 	}
 
 
@@ -539,7 +764,390 @@ public:
 
 
 
+
+
+
+
+
+	// OBB v.s. OBB
+	//bool OBBOBB(OBB& obb1, OBB& obb2)
+	bool OBBOBB(Collision* self_obb, Collision* other_obb)
+	{
+		OBB obb1 = self_obb->m_obb;
+		OBB obb2 = other_obb->m_obb;
+		
+		// 各方向ベクトルの確保
+		// （N***:標準化方向ベクトル）
+		D3DXVECTOR3 NAe1 = obb1.GetRotNormalVector(0), Ae1 = NAe1 * obb1.GetRotNormalLength(0, self_obb->m_ColScale);
+		D3DXVECTOR3 NAe2 = obb1.GetRotNormalVector(1), Ae2 = NAe2 * obb1.GetRotNormalLength(1, self_obb->m_ColScale);
+		D3DXVECTOR3 NAe3 = obb1.GetRotNormalVector(2), Ae3 = NAe3 * obb1.GetRotNormalLength(2, self_obb->m_ColScale);
+		D3DXVECTOR3 NBe1 = obb2.GetRotNormalVector(0), Be1 = NBe1 * obb2.GetRotNormalLength(0, other_obb->m_ColScale);
+		D3DXVECTOR3 NBe2 = obb2.GetRotNormalVector(1), Be2 = NBe2 * obb2.GetRotNormalLength(1, other_obb->m_ColScale);
+		D3DXVECTOR3 NBe3 = obb2.GetRotNormalVector(2), Be3 = NBe3 * obb2.GetRotNormalLength(2, other_obb->m_ColScale);
+		D3DXVECTOR3 Interval = obb1.m_Center - obb2.m_Center;
+
+		// 分離軸 : Ae1
+		FLOAT rA = D3DXVec3Length(&Ae1);
+		FLOAT rB = Collision::LenSegOnSeparateAxis(&NAe1, &Be1, &Be2, &Be3);
+		FLOAT L = fabs(D3DXVec3Dot(&Interval, &NAe1));
+		if (L > rA + rB)
+			return false; // 衝突していない
+
+		float L1 = L;
+		float rA1 = rA;
+		float rB1 = rB;
+		float Dist1 = L - (rA + rB);
+
+		 // 分離軸 : Ae2
+		rA = D3DXVec3Length(&Ae2);
+		rB = Collision::LenSegOnSeparateAxis(&NAe2, &Be1, &Be2, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &NAe2));
+		if (L > rA + rB)
+			return false;
+
+		float L2 = L;
+		float rA2 = rA;
+		float rB2 = rB;
+		float Dist2 = L - (rA + rB);
+
+		// 分離軸 : Ae3
+		rA = D3DXVec3Length(&Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&NAe3, &Be1, &Be2, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &NAe3));
+		if (L > rA + rB)
+			return false;
+
+		float L3 = L;
+		float rA3 = rA;
+		float rB3 = rB;
+		float Dist3 = L - (rA + rB);
+
+		// 分離軸 : Be1
+		rA = Collision::LenSegOnSeparateAxis(&NBe1, &Ae1, &Ae2, &Ae3);
+		rB = D3DXVec3Length(&Be1);
+		L = fabs(D3DXVec3Dot(&Interval, &NBe1));
+		if (L > rA + rB)
+			return false;
+
+		float L4 = L;
+		float rA4 = rA;
+		float rB4 = rB;
+		float Dist4 = L - (rA + rB);
+
+		// 分離軸 : Be2
+		rA = Collision::LenSegOnSeparateAxis(&NBe2, &Ae1, &Ae2, &Ae3);
+		rB = D3DXVec3Length(&Be2);
+		L = fabs(D3DXVec3Dot(&Interval, &NBe2));
+		if (L > rA + rB)
+			return false;
+
+		float L5 = L;
+		float rA5 = rA;
+		float rB5 = rB;
+		float Dist5 = L - (rA + rB);
+
+		// 分離軸 : Be3
+		rA = Collision::LenSegOnSeparateAxis(&NBe3, &Ae1, &Ae2, &Ae3);
+		rB = D3DXVec3Length(&Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &NBe3));
+		if (L > rA + rB)
+			return false;
+
+		float L6 = L;
+		float rA6 = rA;
+		float rB6 = rB;
+		float Dist6 = L - (rA + rB);
+
+		// 分離軸 : C11
+		D3DXVECTOR3 Cross;
+		D3DXVec3Cross(&Cross, &NAe1, &NBe1);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L7 = L;
+		float rA7 = rA;
+		float rB7 = rB;
+		float Dist7 = L - (rA + rB);
+
+		// 分離軸 : C12
+		D3DXVec3Cross(&Cross, &NAe1, &NBe2);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L8 = L;
+		float rA8 = rA;
+		float rB8 = rB;
+		float Dist8 = L - (rA + rB);
+
+		// 分離軸 : C13
+		D3DXVec3Cross(&Cross, &NAe1, &NBe3);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L9 = L;
+		float rA9 = rA;
+		float rB9 = rB;
+		float Dist9 = L - (rA + rB);
+
+		// 分離軸 : C21
+		D3DXVec3Cross(&Cross, &NAe2, &NBe1);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L10 = L;
+		float rA10 = rA;
+		float rB10 = rB;
+		float Dist10 = L - (rA + rB);
+
+		// 分離軸 : C22
+		D3DXVec3Cross(&Cross, &NAe2, &NBe2);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L11 = L;
+		float rA11 = rA;
+		float rB11 = rB;
+		float Dist11 = L - (rA + rB);
+
+		// 分離軸 : C23
+		D3DXVec3Cross(&Cross, &NAe2, &NBe3);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L12 = L;
+		float rA12 = rA;
+		float rB12 = rB;
+		float Dist12 = L - (rA + rB);
+
+		// 分離軸 : C31
+		D3DXVec3Cross(&Cross, &NAe3, &NBe1);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L13 = L;
+		float rA13 = rA;
+		float rB13 = rB;
+		float Dist13 = L - (rA + rB);
+
+		// 分離軸 : C32
+		D3DXVec3Cross(&Cross, &NAe3, &NBe2);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L14 = L;
+		float rA14 = rA;
+		float rB14 = rB;
+		float Dist14 = L - (rA + rB);
+
+		// 分離軸 : C33
+		D3DXVec3Cross(&Cross, &NAe3, &NBe3);
+		rA = Collision::LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+		rB = Collision::LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+		L = fabs(D3DXVec3Dot(&Interval, &Cross));
+		if (L > rA + rB)
+			return false;
+
+		float L15 = L;
+		float rA15 = rA;
+		float rB15 = rB;
+		float Dist15 = L - (rA + rB);
+
+		// 分離平面が存在しないので「衝突している」
+		return true;
+	};
+
+
+	// 分離軸に投影された軸成分から投影線分長を算出
+	FLOAT LenSegOnSeparateAxis(D3DXVECTOR3* Sep, D3DXVECTOR3* e1, D3DXVECTOR3* e2, D3DXVECTOR3* e3 = 0)
+	{
+		// 3つの内積の絶対値の和で投影線分長を計算
+		// 分離軸Sepは標準化されていること
+		FLOAT r1 = fabs(D3DXVec3Dot(Sep, e1));
+		FLOAT r2 = fabs(D3DXVec3Dot(Sep, e2));
+		FLOAT r3 = e3 ? (fabs(D3DXVec3Dot(Sep, e3))) : 0;
+		return r1 + r2 + r3;
+	};
+
+
+
+
+
+
+
 };
+
+
+
+
+
+
+//// OBB v.s. OBB
+//bool OBBOBB(OBB& obb1, OBB& obb2)
+//{
+//	// 各方向ベクトルの確保
+//	// （N***:標準化方向ベクトル）
+//	D3DXVECTOR3 NAe1 = obb1.GetRotNormalVector(0), Ae1 = NAe1 * obb1.GetRotNormalLength(0);
+//	D3DXVECTOR3 NAe2 = obb1.GetRotNormalVector(1), Ae2 = NAe2 * obb1.GetRotNormalLength(1);
+//	D3DXVECTOR3 NAe3 = obb1.GetRotNormalVector(2), Ae3 = NAe3 * obb1.GetRotNormalLength(2);
+//	D3DXVECTOR3 NBe1 = obb2.GetRotNormalVector(0), Be1 = NBe1 * obb2.GetRotNormalLength(0);
+//	D3DXVECTOR3 NBe2 = obb2.GetRotNormalVector(1), Be2 = NBe2 * obb2.GetRotNormalLength(1);
+//	D3DXVECTOR3 NBe3 = obb2.GetRotNormalVector(2), Be3 = NBe3 * obb2.GetRotNormalLength(2);
+//	D3DXVECTOR3 Interval = obb1.m_Center - obb2.m_Center;
+//
+//	// 分離軸 : Ae1
+//	FLOAT rA = D3DXVec3Length(&Ae1);
+//	FLOAT rB = LenSegOnSeparateAxis(&NAe1, &Be1, &Be2, &Be3);
+//	FLOAT L = fabs(D3DXVec3Dot(&Interval, &NAe1));
+//	if (L > rA + rB)
+//		return false; // 衝突していない
+//
+//	 // 分離軸 : Ae2
+//	rA = D3DXVec3Length(&Ae2);
+//	rB = LenSegOnSeparateAxis(&NAe2, &Be1, &Be2, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &NAe2));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : Ae3
+//	rA = D3DXVec3Length(&Ae3);
+//	rB = LenSegOnSeparateAxis(&NAe3, &Be1, &Be2, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &NAe3));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : Be1
+//	rA = LenSegOnSeparateAxis(&NBe1, &Ae1, &Ae2, &Ae3);
+//	rB = D3DXVec3Length(&Be1);
+//	L = fabs(D3DXVec3Dot(&Interval, &NBe1));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : Be2
+//	rA = LenSegOnSeparateAxis(&NBe2, &Ae1, &Ae2, &Ae3);
+//	rB = D3DXVec3Length(&Be2);
+//	L = fabs(D3DXVec3Dot(&Interval, &NBe2));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : Be3
+//	rA = LenSegOnSeparateAxis(&NBe3, &Ae1, &Ae2, &Ae3);
+//	rB = D3DXVec3Length(&Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &NBe3));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C11
+//	D3DXVECTOR3 Cross;
+//	D3DXVec3Cross(&Cross, &NAe1, &NBe1);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C12
+//	D3DXVec3Cross(&Cross, &NAe1, &NBe2);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C13
+//	D3DXVec3Cross(&Cross, &NAe1, &NBe3);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C21
+//	D3DXVec3Cross(&Cross, &NAe2, &NBe1);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C22
+//	D3DXVec3Cross(&Cross, &NAe2, &NBe2);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C23
+//	D3DXVec3Cross(&Cross, &NAe2, &NBe3);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C31
+//	D3DXVec3Cross(&Cross, &NAe3, &NBe1);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C32
+//	D3DXVec3Cross(&Cross, &NAe3, &NBe2);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離軸 : C33
+//	D3DXVec3Cross(&Cross, &NAe3, &NBe3);
+//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
+//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
+//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
+//	if (L > rA + rB)
+//		return false;
+//
+//	// 分離平面が存在しないので「衝突している」
+//	return true;
+//}
+//
+//
+//// 分離軸に投影された軸成分から投影線分長を算出
+//FLOAT LenSegOnSeparateAxis(D3DXVECTOR3* Sep, D3DXVECTOR3* e1, D3DXVECTOR3* e2, D3DXVECTOR3* e3 = 0)
+//{
+//	// 3つの内積の絶対値の和で投影線分長を計算
+//	// 分離軸Sepは標準化されていること
+//	FLOAT r1 = fabs(D3DXVec3Dot(Sep, e1));
+//	FLOAT r2 = fabs(D3DXVec3Dot(Sep, e2));
+//	FLOAT r3 = e3 ? (fabs(D3DXVec3Dot(Sep, e3))) : 0;
+//	return r1 + r2 + r3;
+//}
 
 
 

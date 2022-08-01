@@ -19,6 +19,12 @@
 #define _OX_EPSILON_	0.000001f	// 誤差
 
 
+D3DXMATRIX CreateWorldMatrix(D3DXVECTOR3 Scale, D3DXVECTOR3 Rotation, D3DXVECTOR3 Position);
+
+
+
+
+
 //// 3成分float
 //struct Float3 {
 //	float x, y, z;
@@ -338,6 +344,15 @@ struct SEGMENT
 		return m_pos2 - m_pos1;
 	}
 
+	// pos1からpos2への方向ベクトルを返す
+	D3DXVECTOR3 GetNormalVector()
+	{
+		D3DXVECTOR3 vec = m_pos2 - m_pos1;
+		D3DXVECTOR3 retvec;
+		D3DXVec3Normalize(&retvec, &vec);
+		return retvec;
+	}
+
 };
 
 struct SPHERE 
@@ -413,8 +428,13 @@ struct CAPSULE
 struct OBB
 {
 	D3DXVECTOR3 m_Center;   // 中心点の座標
-	D3DXVECTOR3 m_Rot[3];	// XYZ の各座標軸の傾きを表す方向ベクトル
+	D3DXVECTOR3 m_RotNormal[3];	// XYZ の各座標軸の傾きを表す方向ベクトル
 	D3DXVECTOR3 m_Size;     // OBB の各座標軸に沿った長さの半分（中心点から面までの長さ）
+
+	D3DXPLANE	m_Plane[6];
+	D3DXVECTOR3 m_Normal[6];
+	D3DXVECTOR3 m_VertexPos[8];
+	SEGMENT		m_Segment[12];
 
 	// コンストラクタ
 	OBB() 
@@ -443,24 +463,67 @@ struct OBB
 		//m_Size *= 0.5f;
 		//回転を得る
 		
-		D3DXVec3Normalize(&m_Rot[0] , &VecX); 
-		D3DXVec3Normalize(&m_Rot[1] , &VecY);
-		D3DXVec3Normalize(&m_Rot[2] , &VecZ);
+		D3DXVec3Normalize(&m_RotNormal[0] , &VecX);
+		D3DXVec3Normalize(&m_RotNormal[1] , &VecY);
+		D3DXVec3Normalize(&m_RotNormal[2] , &VecZ);
 	}
 
 	// 回転行列の取得
-	D3DXMATRIX GetRotMatrix()const 
+	D3DXMATRIX GetRotNormalMatrix()const 
 	{
 		D3DXMATRIX ret;
-		ret._11 = m_Rot[0].x;
-		ret._12 = m_Rot[0].y;
-		ret._13 = m_Rot[0].z;
-		ret._21 = m_Rot[1].x;
-		ret._22 = m_Rot[1].y;
-		ret._23 = m_Rot[1].z;
-		ret._31 = m_Rot[2].x;
-		ret._32 = m_Rot[2].y;
-		ret._33 = m_Rot[2].z;
+		ret._11 = m_RotNormal[0].x;
+		ret._12 = m_RotNormal[0].y;
+		ret._13 = m_RotNormal[0].z;
+		ret._21 = m_RotNormal[1].x;
+		ret._22 = m_RotNormal[1].y;
+		ret._23 = m_RotNormal[1].z;
+		ret._31 = m_RotNormal[2].x;
+		ret._32 = m_RotNormal[2].y;
+		ret._33 = m_RotNormal[2].z;
+		return ret;
+	}
+
+	// 指定軸番号の標準化された(Normalizeされている)方向ベクトルを取得。回転行列の1方向をベクターで取得。引き数に0,1,2を指定。
+	D3DXVECTOR3 GetRotNormalVector(int DirectNum)const
+	{
+		// 既に単位ベクトルになっている
+		D3DXVECTOR3 ret;
+		ret.x = m_RotNormal[DirectNum].x;
+		ret.y = m_RotNormal[DirectNum].y;
+		ret.z = m_RotNormal[DirectNum].z;
+		return ret;
+	}
+
+	// 指定軸番号の長さを取得。回転行列の1方向をベクターで取得。引き数に0,1,2を指定。
+	float GetRotNormalLength(int DirectNum, D3DXVECTOR3 colscale)const
+	{
+		D3DXVECTOR3 RotNormalVec;
+		// 指定方向に応じてScale分かけてあげると長さになる。
+		float directscale;
+		if (DirectNum == 0)
+			directscale = colscale.x;
+		else if (DirectNum == 1)
+			directscale = colscale.y;
+		else if (DirectNum == 2)
+			directscale = colscale.z;
+
+		//RotNormalVec.x = m_RotNormal[DirectNum].x;
+		//RotNormalVec.y = m_RotNormal[DirectNum].y;
+		//RotNormalVec.z = m_RotNormal[DirectNum].z;
+
+		RotNormalVec.x = m_RotNormal[DirectNum].x * directscale;
+		RotNormalVec.y = m_RotNormal[DirectNum].y * directscale;
+		RotNormalVec.z = m_RotNormal[DirectNum].z * directscale;
+
+		float ret = D3DXVec3Length(&RotNormalVec);
+		//if (DirectNum == 0)
+		//	ret* m_Size.x;
+		//else if (DirectNum == 1)
+		//	ret* m_Size.y;
+		//else if (DirectNum == 2)
+		//	ret* m_Size.z;
+
 		return ret;
 	}
 
@@ -531,12 +594,120 @@ struct OBB
 	// OBBが回転してないかどうかを調べる（AABBとして使えるかどうかを調べられる）
 	bool IsRotIdentity() const 
 	{
-		if (m_Rot[0] == D3DXVECTOR3(1.0f, 0.0f, 0.0f)
-			&& m_Rot[1] == D3DXVECTOR3(0.0f, 1.0f, 0.0f)
-			&& m_Rot[2] == D3DXVECTOR3(0.0f, 0.0f, 1.0f)) {
+		if (m_RotNormal[0] == D3DXVECTOR3(1.0f, 0.0f, 0.0f)
+			&& m_RotNormal[1] == D3DXVECTOR3(0.0f, 1.0f, 0.0f)
+			&& m_RotNormal[2] == D3DXVECTOR3(0.0f, 0.0f, 1.0f)) {
 			return true;
 		}
 		return false;
+	}
+
+	// 回転後の頂点の座標を取得
+	void CalcVertexPos(D3DXVECTOR3 rotation)
+	{
+		D3DXVECTOR3 VertexPos[8];
+
+		float px = m_Size.x;
+		float py = m_Size.y;
+		float pz = m_Size.z;
+		float mx = -m_Size.x;
+		float my = -m_Size.y;
+		float mz = -m_Size.z;
+
+		// 上の面m_VertexPos[0]
+		VertexPos[0] = D3DXVECTOR3(mx, py, pz);		// 左上
+		VertexPos[1] = D3DXVECTOR3(mx, py, mz);		// 左下
+		VertexPos[2] = D3DXVECTOR3(px, py, mz);		// 右下
+		VertexPos[3] = D3DXVECTOR3(px, py, pz);		// 右上
+		// 下の面
+		VertexPos[4] = D3DXVECTOR3(mx, my, pz);		// 左上
+		VertexPos[5] = D3DXVECTOR3(mx, my, mz);		// 左下
+		VertexPos[6] = D3DXVECTOR3(px, my, mz);		// 右下
+		VertexPos[7] = D3DXVECTOR3(px, my, pz);		// 右上
+
+		//	今の回転から回転行列を作成する
+		D3DXMATRIX rotmat;
+		D3DXMatrixRotationYawPitchRoll(&rotmat, rotation.y, rotation.x, rotation.z);
+
+		for (int i = 0; i < 8; i++)
+		{
+			// 頂点座標を回転行列で回転させて座標を取得する
+			D3DXVECTOR3 BeforePos = VertexPos[i];
+			D3DXVECTOR3 AfterPos;
+			D3DXVec3TransformCoord(&AfterPos, &BeforePos, &rotmat);	// BeforePosをrotmatで回転させたものがAfterPosに戻り値として入る。
+
+			// 相対座標を絶対座標にする
+			m_VertexPos[i] = m_Center + AfterPos;
+		}
+
+		return;
+
+	}
+
+	// 線分12個の設定をする。頂点を先に設定しておかないとダメ
+	void CalcSegment()
+	{
+		// 線分12個の設定をする
+		m_Segment[0].m_pos1 = m_VertexPos[0];	// 上面
+		m_Segment[0].m_pos2 = m_VertexPos[1];
+		m_Segment[1].m_pos1 = m_VertexPos[1];
+		m_Segment[1].m_pos2 = m_VertexPos[2];
+		m_Segment[2].m_pos1 = m_VertexPos[2];
+		m_Segment[2].m_pos2 = m_VertexPos[3];
+		m_Segment[3].m_pos1 = m_VertexPos[3];
+		m_Segment[3].m_pos2 = m_VertexPos[0];
+
+		m_Segment[4].m_pos1 = m_VertexPos[4];	// 下面
+		m_Segment[4].m_pos2 = m_VertexPos[5];
+		m_Segment[5].m_pos1 = m_VertexPos[5];
+		m_Segment[5].m_pos2 = m_VertexPos[6];
+		m_Segment[6].m_pos1 = m_VertexPos[6];
+		m_Segment[6].m_pos2 = m_VertexPos[7];
+		m_Segment[7].m_pos1 = m_VertexPos[7];
+		m_Segment[7].m_pos2 = m_VertexPos[4];
+
+		m_Segment[8].m_pos1 = m_VertexPos[0];	// 縦
+		m_Segment[8].m_pos2 = m_VertexPos[4];
+		m_Segment[9].m_pos1 = m_VertexPos[1];
+		m_Segment[9].m_pos2 = m_VertexPos[5];
+		m_Segment[10].m_pos1 = m_VertexPos[2];
+		m_Segment[10].m_pos2 = m_VertexPos[6];
+		m_Segment[11].m_pos1 = m_VertexPos[3];
+		m_Segment[11].m_pos2 = m_VertexPos[7];
+	}
+
+
+	// 平面の法線を作成。先に線分を作っておかないといけない
+	void CalcNormal()
+	{
+		m_Normal[0] = m_Segment[8].GetNormalVector() * -1;	// 上方向ベクトル
+		m_Normal[1] = m_Segment[1].GetNormalVector();	// 右方向ベクトル
+		m_Normal[2] = m_Segment[2].GetNormalVector();	// 奥方向ベクトル
+		m_Normal[3] = m_Normal[0] * -1;				// 下
+		m_Normal[4] = m_Normal[1] * -1;				// 左
+		m_Normal[5] = m_Normal[2] * -1;				// 前
+	}
+
+
+	// 平面を作成。先に法線を作っておかないといけない
+	void CalcPlane()
+	{
+		
+		D3DXPlaneFromPointNormal(&m_Plane[0], &m_VertexPos[0], &m_Normal[0]);		// 上面	
+		D3DXPlaneFromPointNormal(&m_Plane[1], &m_VertexPos[6], &m_Normal[3]);		// 下面
+		D3DXPlaneFromPointNormal(&m_Plane[2], &m_VertexPos[6], &m_Normal[1]);		// 右面
+		D3DXPlaneFromPointNormal(&m_Plane[3], &m_VertexPos[0], &m_Normal[4]);		// 左面
+		D3DXPlaneFromPointNormal(&m_Plane[4], &m_VertexPos[0], &m_Normal[2]);		// 奥面
+		D3DXPlaneFromPointNormal(&m_Plane[5], &m_VertexPos[6], &m_Normal[5]);		// 前面
+	}
+
+	// obbの6つの平面、その12つの線分、6平面の法線、8つの頂点を求める。それぞれメンバ変数に入っている
+	void CreatePlaneState(D3DXVECTOR3 rotation)
+	{
+		CalcVertexPos(rotation);
+		CalcSegment();
+		CalcNormal();
+		CalcPlane();
 	}
 
 };
@@ -568,7 +739,7 @@ static void ClosestPtPointOBB(const D3DXVECTOR3& point, const OBB& obb, D3DXVECT
 	for (int i = 0; i < 3; i++)
 	{
 		
-		dist = D3DXVec3Dot(&d, &obb.m_Rot[i]);
+		dist = D3DXVec3Dot(&d, &obb.m_RotNormal[i]);
 		if (dist > obb.m_Size[i])
 		{
 			dist = obb.m_Size[i];
@@ -577,7 +748,7 @@ static void ClosestPtPointOBB(const D3DXVECTOR3& point, const OBB& obb, D3DXVECT
 		{
 			dist = -obb.m_Size[i];
 		}
-		retvec += dist * obb.m_Rot[i];
+		retvec += dist * obb.m_RotNormal[i];
 	}
 }
 //--------------------------------------------------------------------------------------
@@ -690,6 +861,75 @@ static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& f
 	return retvec;
 }
 
+// AのOBBに対して一番近いBのOBBの頂点の添え字が返ってくる
+static int GetOBBOBBNearestVertex(OBB Aobb, OBB Bobb)
+{
+	int nearest = -1;
+	float nearestLength = 999.0f;
+	// 2点間の距離が1番短いものを更新していく感じ
+	for (int i = 0; i < 4; i++)
+	{
+		D3DXVECTOR3 Closestpos;
+		ClosestPtPointOBB(Bobb.m_VertexPos[i], Aobb, Closestpos);	// AのOBBとBの頂点の最接近点が求まる
+		D3DXVECTOR3 distanceVec = Bobb.m_VertexPos[i] - Closestpos;
+		float length = D3DXVec3Length(&distanceVec);				// 2点間の距離が求まる
+		if (nearestLength > length)
+		{
+			nearestLength = length;
+			nearest = i;
+		}
+	}
+
+	return nearest;
+}
+
+
+
+
+// ある点とOBBで、ある点はOBBのどの面と一番近いのかを計算する。面の添え字が返る。これはOBBと点の衝突寸前ほど近いことが前提の計算。
+static int GetPointOBBNearestPlane(D3DXVECTOR3 point, OBB obb)
+{
+
+	int nearest = -1;
+	float nearestLength = 999.0f;
+	for (int i = 0; i < 6; i++)
+	{
+		D3DXVECTOR3 PenetratingPoint;	// 平面と直線の貫通座標が入る
+
+		// 直線を作らなければならないが、その平面の内側に入っているかどうかも同時に調べるために、平面の法線の逆に伸ばして線分を作る
+		D3DXVECTOR3 pos1 = point;
+		D3DXVECTOR3 pos2 = point - (obb.m_Normal[i] * 100.0f);		// もしpos1が外側にあればこっちだけ内側になる
+
+		D3DXPlaneIntersectLine(&PenetratingPoint, &obb.m_Plane[i], &pos1, &pos2);	// 平面(無限に広がっている)との貫通点を出す
+
+		D3DXVECTOR3 PeToP1Vec = pos1 - PenetratingPoint;		// 貫通点からそれぞれへのベクトルを出す
+		D3DXVECTOR3 PeToP2Vec = pos2 - PenetratingPoint;
+
+		float p1dot = D3DXVec3Dot(&PeToP1Vec, &obb.m_Normal[i]);	// それぞれの内積を出す
+		float p2dot = D3DXVec3Dot(&PeToP2Vec, &obb.m_Normal[i]);
+
+		// 平面を貫通している。違うならば、その点はもともと平面の内側に入っているので無視する
+		// 貫通点とある点の距離を求める
+		if (p1dot * p2dot <= 0)
+		{
+			D3DXVECTOR3 distanceVec = PenetratingPoint - point;
+			float length = D3DXVec3Length(&distanceVec);				// 2点間の距離が求まる
+			if (nearestLength > length)
+			{
+				nearestLength = length;
+				nearest = i;
+			}
+		}
+		else
+			continue;
+	}
+
+	return nearest;
+
+}
+
+
+
 
 
 
@@ -727,7 +967,7 @@ static D3DXVECTOR3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb, int& f
 
 // 引き数を使ってワールドマトリクスを0から作る
 // GetWorldMatrixとの違いはこっちは引き数でもらうのでどんなのにも対応できる
-D3DXMATRIX CreateWorldMatrix(D3DXVECTOR3 Scale, D3DXVECTOR3 Rotation, D3DXVECTOR3 Position);
+//D3DXMATRIX CreateWorldMatrix(D3DXVECTOR3 Scale, D3DXVECTOR3 Rotation, D3DXVECTOR3 Position);
 bool CAPSULE_OBB(CAPSULE cp, OBB obb, D3DXVECTOR3 retvec);
 static bool CollisionTestSphereObb(const SPHERE& SrcSp, const D3DXVECTOR3& SrcVelocity,
 	const OBB& DestObb,

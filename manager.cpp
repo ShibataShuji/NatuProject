@@ -1,3 +1,4 @@
+
 #include "main.h"
 #include "manager.h"
 #include "renderer.h"
@@ -46,10 +47,12 @@ void Manager::Update()
 
 void Manager::Draw()
 {
-	Renderer::Begin();
+	//Renderer::Begin();
 
 	m_Scene->Draw();
 
-	Renderer::End();// カメラは先！呼び出し順大時// 3D空間での表示// UI系は最後に。
+
+
+	//Renderer::End();// カメラは先！呼び出し順大時// 3D空間での表示// UI系は最後に。
 	
 }

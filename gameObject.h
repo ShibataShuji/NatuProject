@@ -15,6 +15,8 @@ protected:	// アクセス指定子
 	D3DXVECTOR3 m_Position;
 	D3DXVECTOR3 m_Rotation;
 	D3DXVECTOR3 m_Scale;
+	D3DXVECTOR3 m_InitScale;
+	D3DXVECTOR3 m_ScaleRate = D3DXVECTOR3(1.0f, 1.0f, 1.0f);	// 設定された初期値に対しての倍率
 
 	D3DXVECTOR3	m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);		// 現在の速度ベクトル
 
@@ -26,9 +28,9 @@ protected:	// アクセス指定子
 
 	// 計算用
 	D3DXVECTOR3 m_Old_Position;
-	//D3DXVECTOR3 m_temp_Position;
-	//D3DXVECTOR3	m_temp_Velocity;
-
+	D3DXVECTOR3 m_Old_Rotation;
+	D3DXVECTOR3 m_Old_Scale;
+	D3DXVECTOR3 m_Old_ScaleRate;
 
 
 
@@ -80,8 +82,9 @@ public:
 	{
 		// 座標の保存
 		m_Old_Position = m_Position;
-		//m_temp_Position = m_Position;
-		//m_temp_Velocity = m_Velocity;
+		m_Old_Rotation = m_Rotation;
+		m_Old_Scale = m_Scale;
+		m_Old_ScaleRate = m_ScaleRate;
 
 		// 接地判定のTempのリセット。前フレームのが残らないようにここでリセットしておく。
 		m_temp_OnTheGround = false;
@@ -120,14 +123,23 @@ public:
 	//	m_Velocity = m_temp_Velocity;
 	//}
 
-	D3DXVECTOR3 GetPosition() { return m_Position; }
 	void SetPosition(D3DXVECTOR3 Position){	m_Position = Position;	}
 	void SetPosition_x(float x){	m_Position.x = x;	}
 	void SetPosition_y(float y){	m_Position.y = y;	}
 	void SetPosition_z(float z){	m_Position.z = z;	}
 
+	void SetRotation(D3DXVECTOR3 rotation){ m_Rotation = rotation;	}
+
+	D3DXVECTOR3 GetPosition() { return m_Position; }
+	D3DXVECTOR3 GetRotation() { return m_Rotation; }
+	D3DXVECTOR3 GetScale() { return m_Scale; }
+	D3DXVECTOR3 GetScaleRate() { return m_ScaleRate; }
+
 	D3DXVECTOR3 GetOldPosition() { return m_Old_Position; }
-	void SetOldPosition(D3DXVECTOR3 Position) { m_Old_Position = Position; }
+	D3DXVECTOR3 GetOldRotation() { return m_Old_Rotation; }
+	D3DXVECTOR3 GetOldScale() { return m_Old_Scale; }
+	D3DXVECTOR3 GetOldScaleRate() { return m_Old_ScaleRate; }
+	//void SetOldPosition(D3DXVECTOR3 Position) { m_Old_Position = Position; }
 
 	//D3DXVECTOR3 GetTempPosition() { return m_temp_Position; }
 	//void SetTempPosition(D3DXVECTOR3 Position) { m_temp_Position = Position; }
@@ -141,15 +153,20 @@ public:
 	//D3DXVECTOR3 GetTempVelocity() { return m_temp_Velocity; }
 	//void SetTempVelocity(D3DXVECTOR3 Velocity) { m_temp_Velocity = Velocity; }
 
-
-	D3DXVECTOR3 GetRotation() { return m_Rotation; }
-
 	void SetDestroy() { m_Destroy = true; }
 
-	D3DXVECTOR3 GetScale() { return m_Scale; }
-	void SetScale(D3DXVECTOR3 setscale) {
-		m_Scale = setscale
-			;
+	// Initではこれを使ってスケールを設定してあげる
+	void SetInitScale(D3DXVECTOR3 setscale) 
+	{ 
+		m_InitScale = setscale;
+		m_Scale = setscale;
+	}
+	void SetScaleRate(D3DXVECTOR3 setscalerate) 
+	{ 
+		m_ScaleRate = setscalerate; 
+		m_Scale.x = m_InitScale.x * m_ScaleRate.x;
+		m_Scale.y = m_InitScale.y * m_ScaleRate.y;
+		m_Scale.z = m_InitScale.z * m_ScaleRate.z;
 	}
 
 	// このオブジェクトのm_Scale,m_Rotation,m_Positionを使ってワールドマトリクスを0から作る

@@ -9,17 +9,16 @@
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <tchar.h>
+#include "renderer.h"
 
 const char* CLASS_NAME = "AppClass";
 const char* WINDOW_NAME = "DX11ゲーム";
 
-// mainの処理
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HRESULT Init(HINSTANCE hInstance, HWND hWnd);
 void Uninit(void);
 void Update(void);
 
-// 現在のマウスの座標
 long g_MouseX = 0;
 long g_MouseY = 0;
 
@@ -75,6 +74,8 @@ bool CreateDeviceD3D(HWND hWnd)
 	sd.Windowed = TRUE;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
+	
+
 	UINT createDeviceFlags = 0;
 	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	D3D_FEATURE_LEVEL featureLevel;
@@ -88,24 +89,6 @@ bool CreateDeviceD3D(HWND hWnd)
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-
-	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
-	::RegisterClassEx(&wc);
-
-	WNDCLASS winc;
-
-	winc.style = CS_HREDRAW | CS_VREDRAW;
-	winc.lpfnWndProc = WndProc;
-	winc.cbClsExtra = winc.cbWndExtra = 0;
-	winc.hInstance = hInstance;
-	winc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	winc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	winc.lpszMenuName = NULL;
-	winc.lpszClassName = TEXT("KITTY");
-
-	if (!RegisterClass(&winc))
-		return -1;
 
 	WNDCLASSEX wcex =
 	{
@@ -122,7 +105,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		CLASS_NAME,
 		NULL
 	};
-
 	RegisterClassEx(&wcex);
 
 	g_Window = CreateWindowEx(0,
@@ -138,33 +120,20 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		hInstance,
 		NULL);
 
-	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Debug Window"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
-
 	Manager::Init();
 	// DirectXの初期化(ウィンドウを作成してから行う)
 	Init(hInstance, g_Window);
 	// Initialize Direct3D
-	if (!CreateDeviceD3D(hwnd))
+	if (!CreateDeviceD3D(g_Window))
 	{
 		CleanupDeviceD3D();
-		::UnregisterClass(wc.lpszClassName, wc.hInstance);
+		::UnregisterClass(wcex.lpszClassName, wcex.hInstance);
 		return 1;
 	}
 
 	ShowWindow(g_Window, nCmdShow);
+	//ShowWindow(g_Window, SW_SHOWDEFAULT);
 	UpdateWindow(g_Window);
-
-	::ShowWindow(hwnd, SW_SHOWDEFAULT);
-	::UpdateWindow(hwnd);
-
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 	bool show_demo_window = true;
 	bool show_another_window = false;
@@ -196,9 +165,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		if (done)
 			break;
 
+		dwCurrentTime = timeGetTime();
 		nowtime = timeGetTime();			// 現在時刻獲得
 
-		dwCurrentTime = timeGetTime();
 		if ((dwCurrentTime - dwExecLastTime) >= (1000 / 60))
 		{
 			dwExecLastTime = dwCurrentTime;
@@ -206,26 +175,39 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			// FPS計算(超簡略版)
 			g_fFPS = 1000.0f / (nowtime - oldtime);
 
-			_RPTN(_CRT_WARN, "FPS %f\n", g_fFPS);
+			/*_RPTN(_CRT_WARN, "FPS %f\n", g_fFPS);*/
 
 			oldtime = nowtime;
 
+
+			// Imguiの毎フレーム表示の前に必要
+			// 他のUpdate内でImguiを使うためにUpdateの前に呼び出している
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
+			// プレイヤー等のアップデート関数の呼び出し
 			Manager::Update();
 			Update();
+
+			// こんな風にguiクラスで関数にまとめて、player.cppとかで呼び出すときに関数一つで呼び出せるといいと思う
+			//gui::DebugStorage();
+
+			// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+			if (show_demo_window)	// でもウィンドウの表示。テスト用
+				ImGui::ShowDemoWindow(&show_demo_window);
+			
+
+			Renderer::Begin();
+			// プレイヤーなどのゲームオブジェクトを継承しているDraw関数を呼び出したり。
 			Manager::Draw();
+			// レンダラーのEnd内で、Imguiの表示を呼び出している。GUIが1番上に来てほしいから最後にしている。
+			Renderer::End();// カメラは先！呼び出し順大時// 3D空間での表示// UI系は最後に。
+
+			
 		}
 
-		//-----ここでimguiでやりたいことを書く
-		gui::DebugStorage();
 
-		// Rendering
-		ImGui::Render();
-		const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-		g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, NULL);
-		g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-		g_pSwapChain->Present(1, 0); // Present with vsync
 	}
 
 	timeEndPeriod(1);
@@ -234,10 +216,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	gui::DestroyImGui();
 
 	CleanupDeviceD3D();
-	::DestroyWindow(hwnd);
-	::UnregisterClass(wc.lpszClassName, wc.hInstance);
+	::DestroyWindow(g_Window);
+	::UnregisterClass(wcex.lpszClassName, wcex.hInstance);
+	//::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
-	UnregisterClass(CLASS_NAME, wcex.hInstance);
+	UnregisterClass(CLASS_NAME, wcex.hInstance);		//aaaaaaaaa
+	//UnregisterClass(CLASS_NAME, wc.hInstance);
 
 	Manager::Uninit();
 	Uninit();
@@ -313,13 +297,12 @@ void Update(void)
 	Input::Update();
 }
 
-// 現在のマウスの座標
 long GetMousePosX(void)
 {
 	return g_MouseX;
 }
 
-// 現在のマウスの座標
+
 long GetMousePosY(void)
 {
 	return g_MouseY;

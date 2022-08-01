@@ -23,4 +23,7 @@ namespace gui
 	void DebugStorage() noexcept;
 
 	void DestroyImGui() noexcept;
+
+	float DebugA() noexcept;
+
 }

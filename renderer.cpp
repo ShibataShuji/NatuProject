@@ -3,6 +3,14 @@
 #include "renderer.h"
 #include <io.h>
 
+#include "gui.h"
+
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
+#include <d3d11.h>
+#include <tchar.h>
+
 
 D3D_FEATURE_LEVEL       Renderer::m_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
 
@@ -21,8 +29,6 @@ ID3D11Buffer*			Renderer::m_LightBuffer = NULL;
 
 ID3D11DepthStencilState* Renderer::m_DepthStateEnable = NULL;
 ID3D11DepthStencilState* Renderer::m_DepthStateDisable = NULL;
-
-
 
 
 
@@ -234,7 +240,17 @@ void Renderer::Init()
 	SetMaterial(material);
 
 
+	//ImGui_ImplWin32_Init(GetWindow());
+	//ImGui_ImplDX11_Init(m_Device, m_DeviceContext);
 
+		// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	ImGui::StyleColorsDark();
+	ImGui_ImplWin32_Init(GetWindow());
+	ImGui_ImplDX11_Init(m_Device, m_DeviceContext);
 
 }
 
@@ -272,6 +288,17 @@ void Renderer::Begin()
 
 void Renderer::End()
 {
+
+	// ImGui‚ÌRendering
+	ImGui::Render();
+	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+	//m_DeviceContext->OMSetRenderTargets(1, &m_RenderTargetView, NULL);
+	//m_DeviceContext->ClearRenderTargetView(m_RenderTargetView, clearColor);
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+
+	// ‘S‚Ä‚ð•\Ž¦‚³‚¹‚é
 	m_SwapChain->Present( 1, 0 );
 }
 

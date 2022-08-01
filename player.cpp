@@ -12,6 +12,14 @@
 #include "Rigidbody.h"
 #include "Collision.h"
 #include "Platform.h"
+
+#include "gui.h"
+
+//#include "gui.h"
+
+#include "imgui.h"
+//#include "imgui_impl_win32.h"
+//#include "imgui_impl_dx11.h"
 //
 //struct CAPSULEB
 //{
@@ -59,9 +67,10 @@ void Player::Init()
 	m_Model = new Model();
 	m_Model->Load("asset\\model\\torus.obj");
 
-	m_Position = D3DXVECTOR3(0.0f, 10.0f, 5.0f);
+	m_Position = D3DXVECTOR3(-3.0f, 0.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	m_Scale	   = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+	//m_Scale	   = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+	SetInitScale(D3DXVECTOR3(1.0f, 2.0f, 2.0f));
 
 	m_TagNum = 2;
 
@@ -70,13 +79,19 @@ void Player::Init()
 	// Componentの設定
 	// <Collision>
 	//　カプセルコリジョンの設定
+	Collision* p_Collision = GetComponent<Collision>();
 	//Point offset = { 0.0f,0.0f + m_Scale.y,0.0f };
 	//GetComponent<Collision>()->SetCollisionOffset(offset);
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x + offset.x, m_Position.y + offset.y, m_Position.z + offset.z),50.0f, 100.0f);
-	GetComponent<Collision>()->SetMovable(true);
-	GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
-	GetComponent<Collision>()->LoadCollisionModel();
-	GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+	
+	//GetComponent<Collision>()->SetMovable(true);
+	//GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
+	//GetComponent<Collision>()->LoadCollisionModel();
+	//GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+	p_Collision->SetMovable(true);
+	p_Collision->SetCollisionType(BOX_COLLISION);
+	p_Collision->LoadCollisionModel();
+	p_Collision->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 
 	//GetComponent<Collision>()->SetCollisionType(CAPSULE_COLLISION);
 	//GetComponent<Collision>()->LoadCollisionModel();
@@ -116,6 +131,7 @@ void Player::Update()
 {
 	// 親クラスのUpdateを呼んでいる。ここの中でコンポーネントのUpdateも呼ばれている。
 	GameObject::Update();
+
 
 
 	// モデルを移動したりするときはここに書いたりする
@@ -179,6 +195,16 @@ void Player::Update()
 		}
 	}
 
+
+	float aaa = gui::DebugA();
+	SetScaleRate(D3DXVECTOR3(aaa, aaa, aaa));
+	//Collision* p_Collision = GetComponent<Collision>();
+	//p_Collision->SetBoxScale(D3DXVECTOR3(aaa, aaa, aaa));
+	
+
+	ImGui::Begin("Debug");
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
 
 
 	D3DXVECTOR3 shadowPos = m_Position;
