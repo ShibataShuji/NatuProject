@@ -40,7 +40,7 @@ void Game::Init()
 	// どうにかしてプレイヤーのポインターを持っておきたい、グローバル変数とかで。
 	//T p_Player = AddGameObject<Player>(1);
 	AddGameObject<Player>(1);
-	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(2.0f, 1.0f, 5.0f));
 	//AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(0.0f, 1.0f, 5.0f));
 	//AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(3.0f, 1.0f, 5.0f));
 

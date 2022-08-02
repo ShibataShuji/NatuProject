@@ -28,7 +28,7 @@ private:
 	float		m_OnTheGroundCheckNormal = 0.7f;	// 0.0f~1.0f 接地判定の時、衝突した時の方向ベクトルyがこれ以上のときに接地判定をtrueにする
 	
 
-	// すべてのコリジョンタイプで使うやつ。Radius = Scale.xで考える
+	// すべてのコリジョンタイプで使うやつ。Radius = ColScale.xで考える
 	D3DXVECTOR3 m_ColRotation = { 0.0f, 0.0f, 0.0f };
 	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
 	D3DXVECTOR3 m_ColInitScale = { 1.0f, 1.0f, 1.0f };
@@ -147,7 +147,8 @@ public:
 
 		// WorldMatrixを取得しておく(Scale,Rotation,Posのデータ)
 		//D3DXMATRIX selfMatrix = m_ParentGameObject->GetWorldMatrix();
-		D3DXMATRIX selfMatrix = CreateWorldMatrix(m_ColScale, m_ColRotation, t_Position);
+		//D3DXMATRIX selfMatrix = CreateWorldMatrix(m_ColScale, m_ColRotation, t_Position);
+		D3DXMATRIX selfMatrix = CreateWorldMatrix(D3DXVECTOR3(1.0f, 1.0f, 1.0f), m_ColRotation, t_Position);
 
 		// OBBの更新
 		m_obb.CreateOBB(m_ColScale, selfMatrix);
@@ -209,7 +210,9 @@ public:
 				else if (m_Collision_type == BOX_COLLISION && other->GetComponent<Collision>()->GetCollisionType() == BOX_COLLISION)
 				{
 					// 省略用に相手のobbのポインタを用意。自分はm_obb
-					OBB* other_obb = &other_collision->m_obb;
+					OBB* other_obb = &other_collision->m_obb;	//other_collision
+					/*D3DXMATRIX other_Matrix = CreateWorldMatrix(other_collision->m_ColScale, other_collision->m_ColRotation, other_collision->m_obb.m_Center);
+					other_obb->CreateOBB(other_collision->m_ColScale, other_Matrix);*/
 
 					//bool bbb = OBBOBB(this, other->GetComponent<Collision>());
 
@@ -278,16 +281,27 @@ public:
 					D3DXVECTOR3 self_ScaleOne = self_ScaleFrame / DivNum;		// 分割したときの１回でのScaleRateの変化量
 					D3DXVECTOR3 other_ScaleOne = other_ScaleFrame / DivNum;
 
+					//// WorldMatrix Afterバージョン
+					//D3DXMATRIX self_AfterMatrix = CreateWorldMatrix(self_AfterScale, self_AfterRotation, self_AfterPos);
+					D3DXMATRIX self_AfterMatrix = CreateWorldMatrix(D3DXVECTOR3(1.0f, 1.0f, 1.0f), self_AfterRotation, self_AfterPos);
+					// OBB  Afterバージョン
+					OBB self_AfterOBB;
+					self_AfterOBB.CreateOBB(self_AfterScale, self_AfterMatrix);
+
 					// 衝突していたら
 					if (OBBOBB(this, other->GetComponent<Collision>()))
 					{
-						
+						// 衝突相手のOBBの更新いらないかも
+						/*D3DXMATRIX other_Matrix = CreateWorldMatrix(other_collision->m_ColScale, other_collision->m_ColRotation, other_collision->m_obb.m_Center);
+						other_obb->CreateOBB(other_collision->m_ColScale, other_Matrix);*/
+
 
 						// 相手が動かないなら自分だけ動かす処理
 						if (other->GetComponent<Collision>()->m_Movable == false)
 						{
 							//// WorldMatrixをOldで作り直すold
-							D3DXMATRIX self_oldMatrix = CreateWorldMatrix(self_oldScale, self_oldRotation, self_oldPos);
+							//D3DXMATRIX self_oldMatrix = CreateWorldMatrix(self_oldScale, self_oldRotation, self_oldPos);
+							D3DXMATRIX self_oldMatrix = CreateWorldMatrix(D3DXVECTOR3(1.0f, 1.0f, 1.0f), self_oldRotation, self_oldPos);
 
 							// OBBを作り直すold
 							OBB self_oldOBB;
@@ -302,7 +316,6 @@ public:
 							//int mid = (low + high) / 2;
 							int mid;
 							int oldmid = -1;
-							int ggg = 10;
 							for (int i = 0; i < MaxTrial; i++)
 							{
 								mid = (low + high) / 2;
@@ -310,7 +323,6 @@ public:
 								// 2回連続でmidが同じ値だったら
 								if (oldmid == mid)
 								{
-									_RPTN(_CRT_WARN, "GGG %d\n", ggg);
 									break;
 								}
 
@@ -319,11 +331,12 @@ public:
 								self_bcSca = self_oldScale + (self_ScaleOne * mid);
 
 								//// WorldMatrixを作り直すnew
-								D3DXMATRIX self_newMatrix = CreateWorldMatrix(self_bcSca, self_bcRot, self_bcPos);
+								//D3DXMATRIX self_bcMatrix = CreateWorldMatrix(self_bcSca, self_bcRot, self_bcPos);
+								D3DXMATRIX self_bcMatrix = CreateWorldMatrix(D3DXVECTOR3(1.0f, 1.0f, 1.0f), self_bcRot, self_bcPos);
 
 								// OBBを作り直すnew
 								OBB self_bcOBB;
-								self_bcOBB.CreateOBB(self_bcSca, self_newMatrix);
+								self_bcOBB.CreateOBB(self_bcSca, self_bcMatrix);
 
 								// OBBの上書き
 								m_obb = self_bcOBB;
@@ -332,13 +345,11 @@ public:
 								{
 									// 衝突しているなら、分割数を更に戻す
 									high = mid;
-									ggg = 1;
 								}
 								else
 								{
 									// 衝突していないなら、分割数を更に進める
 									low = mid;
-									ggg = 0;
 								}
 								
 								//if (low >= high)
@@ -366,12 +377,32 @@ public:
 							// この後戻す処理をしたい方をBに設定してあげるといい。
 							int NearVer = GetOBBOBBNearestVertex(*other_obb, m_obb);
 
-							// 次にその頂点がどの面と一番近いのかを計算する
-							int NearPlane = GetPointOBBNearestPlane(m_obb.m_VertexPos[NearVer], *other_obb);
+							float x = m_obb.m_VertexPos[NearVer].x;
+							float y = m_obb.m_VertexPos[NearVer].y;
+							float z = m_obb.m_VertexPos[NearVer].z;
 
+							// 次にその頂点がどの面と一番近いのかを計算する
+							D3DXVECTOR3 distancevec;					// 戻り値用。一番近い面から垂直な距離が返る
+							int NearPlane = GetPointOBBNearestPlane(&distancevec, m_obb.m_VertexPos[NearVer], *other_obb);
+
+							_RPTN(_CRT_WARN, "NearVer %d\n", NearVer);
 							_RPTN(_CRT_WARN, "NearPlane %d\n", NearPlane);
 
+							// 衝突した頂点と面が求まったので、衝突後の座標で、その頂点がその面に
+							// どれだけめり込んでるかを計算しなおす。めり込んでる分面の法線ベクトルの方向に戻す
 
+							// OBBをAfterバージョンで上書き
+							m_obb = self_AfterOBB;
+							m_obb.CreatePlaneState(self_AfterRotation);	
+							distancevec = CalcPlaneToPoint(m_obb, NearVer, *other_obb, NearPlane);
+
+							//D3DXVECTOR3 self_newPos = self_AfterPos - distancevec;
+							//selfMatrix = CreateWorldMatrix(D3DXVECTOR3(1.0f, 1.0f, 1.0f), self_AfterRotation, self_newPos);
+							//// OBBの更新
+							//m_obb.CreateOBB(m_ColScale, selfMatrix);
+							
+							OverlapToBackPosition(this->m_ParentGameObject, other, -distancevec);		// この中でセットしている
+							
 							// 頂点が１つも衝突していない場合は線分同士が衝突しているので
 							// ClosestPtSegmentSegment を使う
 
@@ -381,7 +412,7 @@ public:
 							//m_ParentGameObject->SetScaleRate(self_bcSca);
 							
 							//m_ParentGameObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
-							//m_ParentGameObject->SetPosition(D3DXVECTOR3(-3.0f, 0.0f, 0.0f));
+							//m_ParentGameObject->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 							//_RPTN(_CRT_WARN, "RRR %d\n", rrr);
 

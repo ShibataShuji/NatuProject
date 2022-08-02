@@ -432,7 +432,7 @@ struct OBB
 	D3DXVECTOR3 m_Size;     // OBB の各座標軸に沿った長さの半分（中心点から面までの長さ）
 
 	D3DXPLANE	m_Plane[6];
-	D3DXVECTOR3 m_Normal[6];
+	D3DXVECTOR3 m_Normal[6];			// 面から垂直に出てる方向ベクトル。
 	D3DXVECTOR3 m_VertexPos[8];
 	SEGMENT		m_Segment[12];
 
@@ -446,7 +446,7 @@ struct OBB
 		CreateOBB(SizeVec, Matrix);
 	}
 
-	// OBBの全てを設定してくれる
+	// OBBの全てを設定してくれる。Sizeは半径。ColScaleも半径なのでそのままでOK
 	void CreateOBB(const D3DXVECTOR3& Size, const D3DXMATRIX& Matrix) 
 	{
 		m_Center.x = Matrix._41;
@@ -631,6 +631,8 @@ struct OBB
 
 		for (int i = 0; i < 8; i++)
 		{
+			if (i == 2)
+				int ggghhhh = 4;
 			// 頂点座標を回転行列で回転させて座標を取得する
 			D3DXVECTOR3 BeforePos = VertexPos[i];
 			D3DXVECTOR3 AfterPos;
@@ -639,6 +641,8 @@ struct OBB
 			// 相対座標を絶対座標にする
 			m_VertexPos[i] = m_Center + AfterPos;
 		}
+
+		int ggrgrg = 55;
 
 		return;
 
@@ -681,8 +685,8 @@ struct OBB
 	void CalcNormal()
 	{
 		m_Normal[0] = m_Segment[8].GetNormalVector() * -1;	// 上方向ベクトル
-		m_Normal[1] = m_Segment[1].GetNormalVector();	// 右方向ベクトル
-		m_Normal[2] = m_Segment[2].GetNormalVector();	// 奥方向ベクトル
+		m_Normal[1] = m_Segment[1].GetNormalVector();		// 右方向ベクトル
+		m_Normal[2] = m_Segment[2].GetNormalVector();		// 奥方向ベクトル
 		m_Normal[3] = m_Normal[0] * -1;				// 下
 		m_Normal[4] = m_Normal[1] * -1;				// 左
 		m_Normal[5] = m_Normal[2] * -1;				// 前
@@ -699,6 +703,17 @@ struct OBB
 		D3DXPlaneFromPointNormal(&m_Plane[3], &m_VertexPos[0], &m_Normal[4]);		// 左面
 		D3DXPlaneFromPointNormal(&m_Plane[4], &m_VertexPos[0], &m_Normal[2]);		// 奥面
 		D3DXPlaneFromPointNormal(&m_Plane[5], &m_VertexPos[6], &m_Normal[5]);		// 前面
+
+		//D3DXPlaneFromPoints(&m_Plane[0], &m_VertexPos[0], &m_VertexPos[1], &m_VertexPos[2]);		// 上面	
+		//D3DXPlaneFromPoints(&m_Plane[1], &m_VertexPos[2], &m_VertexPos[6], &m_VertexPos[7]);		// 右面
+		//D3DXPlaneFromPoints(&m_Plane[2], &m_VertexPos[0], &m_VertexPos[4], &m_VertexPos[7]);		// 奥面
+		//D3DXPlaneFromPoints(&m_Plane[3], &m_VertexPos[4], &m_VertexPos[5], &m_VertexPos[6]);		// 下面
+		//D3DXPlaneFromPoints(&m_Plane[4], &m_VertexPos[0], &m_VertexPos[1], &m_VertexPos[5]);		// 左面
+		//D3DXPlaneFromPoints(&m_Plane[5], &m_VertexPos[1], &m_VertexPos[5], &m_VertexPos[6]);		// 前面
+		
+
+
+		int a = 4;
 	}
 
 	// obbの6つの平面、その12つの線分、6平面の法線、8つの頂点を求める。それぞれメンバ変数に入っている
@@ -887,7 +902,7 @@ static int GetOBBOBBNearestVertex(OBB Aobb, OBB Bobb)
 
 
 // ある点とOBBで、ある点はOBBのどの面と一番近いのかを計算する。面の添え字が返る。これはOBBと点の衝突寸前ほど近いことが前提の計算。
-static int GetPointOBBNearestPlane(D3DXVECTOR3 point, OBB obb)
+static int GetPointOBBNearestPlane(D3DXVECTOR3* retDistanceVec, D3DXVECTOR3 point, OBB obb)
 {
 
 	int nearest = -1;
@@ -898,15 +913,32 @@ static int GetPointOBBNearestPlane(D3DXVECTOR3 point, OBB obb)
 
 		// 直線を作らなければならないが、その平面の内側に入っているかどうかも同時に調べるために、平面の法線の逆に伸ばして線分を作る
 		D3DXVECTOR3 pos1 = point;
-		D3DXVECTOR3 pos2 = point - (obb.m_Normal[i] * 100.0f);		// もしpos1が外側にあればこっちだけ内側になる
+		D3DXVECTOR3 pos2 = point - (obb.m_Normal[i] * 10.0f);		// もしpos1が外側にあればこっちだけ内側になる
 
-		D3DXPlaneIntersectLine(&PenetratingPoint, &obb.m_Plane[i], &pos1, &pos2);	// 平面(無限に広がっている)との貫通点を出す
+		D3DXVECTOR3 pv = pos2 - pos1;
 
+		D3DXPlaneIntersectLine(&PenetratingPoint, &obb.m_Plane[i], &pos1, &pv);	// 平面(無限に広がっている)との貫通点を出す
+
+		
+		float a = obb.m_Plane[i].a;	// -1
+		float b = obb.m_Plane[i].b;
+		float c = obb.m_Plane[i].c;
+		float d = obb.m_Plane[i].d;	// -2
+
+		int kkkk = 10;
+		if (PenetratingPoint == NULL)
+			kkkk = 6;
+
+		if (i == 5)
+			int fjjj = 5;
 		D3DXVECTOR3 PeToP1Vec = pos1 - PenetratingPoint;		// 貫通点からそれぞれへのベクトルを出す
 		D3DXVECTOR3 PeToP2Vec = pos2 - PenetratingPoint;
 
 		float p1dot = D3DXVec3Dot(&PeToP1Vec, &obb.m_Normal[i]);	// それぞれの内積を出す
 		float p2dot = D3DXVec3Dot(&PeToP2Vec, &obb.m_Normal[i]);
+
+		float xxx = obb.m_VertexPos[0].x;
+
 
 		// 平面を貫通している。違うならば、その点はもともと平面の内側に入っているので無視する
 		// 貫通点とある点の距離を求める
@@ -916,6 +948,7 @@ static int GetPointOBBNearestPlane(D3DXVECTOR3 point, OBB obb)
 			float length = D3DXVec3Length(&distanceVec);				// 2点間の距離が求まる
 			if (nearestLength > length)
 			{
+				*retDistanceVec = distanceVec;
 				nearestLength = length;
 				nearest = i;
 			}
@@ -929,7 +962,23 @@ static int GetPointOBBNearestPlane(D3DXVECTOR3 point, OBB obb)
 }
 
 
+//static D3DXVECTOR3 CalcPlaneToPoint(D3DXPLANE plane, D3DXVECTOR3 point, int vertexnumber)
+static D3DXVECTOR3 CalcPlaneToPoint(OBB Aobb, int vertexnum, OBB Bobb, int planenum)
+{
+	D3DXVECTOR3 distancevec;	// 戻り値用
+	D3DXVECTOR3 PenetratingPoint;	// 平面と直線の貫通座標が入る
 
+	D3DXPlaneIntersectLine(&PenetratingPoint, &Bobb.m_Plane[planenum], &Aobb.m_VertexPos[vertexnum], &Bobb.m_Normal[planenum]);
+
+	distancevec = Aobb.m_VertexPos[vertexnum] - PenetratingPoint;
+	float distanceLength = D3DXVec3Length(&distancevec);
+	D3DXVECTOR3 backvec = Bobb.m_Normal[planenum] * distanceLength;
+
+	float DotCoord = D3DXPlaneDotCoord(&Bobb.m_Plane[planenum], &Aobb.m_VertexPos[vertexnum]);
+	float len = DotCoord / D3DXVec3Length(&Bobb.m_Normal[planenum]);
+	//backvec = Bobb.m_Normal[planenum] * len;
+	return backvec * 1.0f;
+}
 
 
 

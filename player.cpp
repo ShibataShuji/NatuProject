@@ -67,10 +67,10 @@ void Player::Init()
 	m_Model = new Model();
 	m_Model->Load("asset\\model\\torus.obj");
 
-	m_Position = D3DXVECTOR3(-3.0f, 0.0f, 0.0f);
+	m_Position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	//m_Scale	   = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-	SetInitScale(D3DXVECTOR3(1.0f, 2.0f, 2.0f));
+	SetInitScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 
 	m_TagNum = 2;
 
@@ -132,7 +132,7 @@ void Player::Update()
 	// 親クラスのUpdateを呼んでいる。ここの中でコンポーネントのUpdateも呼ばれている。
 	GameObject::Update();
 
-
+	//_RPTN(_CRT_WARN, "Pos %f\n", m_Position.x);
 
 	// モデルを移動したりするときはここに書いたりする
 
