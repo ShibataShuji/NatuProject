@@ -26,5 +26,14 @@ public:
 
 	D3DXMATRIX GetViewMatrix() { return m_ViewMatrix;}
 
+	// m_Position‚©‚çm_Target‚Ö‚Ì•ûŒüƒxƒNƒgƒ‹
+	D3DXVECTOR3 GetCameraForward()
+	{
+		D3DXVECTOR3 distance = m_Target - m_Position;
+		D3DXVECTOR3 normal;
+		D3DXVec3Normalize(&normal, &distance);
+		return normal;
+	}
+
 };
 

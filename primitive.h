@@ -330,6 +330,8 @@ struct SEGMENT;
 struct SPHERE;
 struct CAPSULE;
 struct OBB;
+struct RAY;
+class Collision;
 
 struct SEGMENT
 {
@@ -355,12 +357,37 @@ struct SEGMENT
 
 };
 
+struct RAY
+{
+	SEGMENT		m_Segment;	
+	float		m_length;		// スタート位置から一番近い衝突点への長さ
+	Collision* HitCollision;	// 衝突したうちの一番近いもの
+
+	RAY() : m_length(999), HitCollision(nullptr){ }
+
+	// 衝突点を取得する
+	D3DXVECTOR3 GetCollisionPoint()
+	{
+		D3DXVECTOR3 normal = m_Segment.GetNormalVector();
+		D3DXVECTOR3 CollisionPoint = m_Segment.m_pos1 + (normal * m_length);
+		return CollisionPoint;
+	}
+
+
+};
+
 struct SPHERE 
 {
 	D3DXVECTOR3 m_Center;	// 中心点の座標
 	float		m_Radius;	// 半径
 
 	SPHERE() : m_Center(0, 0, 0), m_Radius(0.5f) {}
+
+	void SetSpehre(D3DXVECTOR3 center, float radius)
+	{
+		m_Center = center;
+		m_Radius = radius;
+	}
 
 };
 
@@ -370,19 +397,21 @@ struct CAPSULE
 	float m_Radius;				// 半径
 	float m_HalfHeight;				// 半径
 	D3DXVECTOR3 m_Center;		// 中心点の座標
+	D3DXVECTOR3 m_Rotation;		// カプセルの回転
 	//D3DXVECTOR3 m_PointUpper;	// カプセルの上の球体部分の球の中心座標
 	//D3DXVECTOR3 m_PointLower;	// カプセルの下の球体部分の球の中心座標
 
 	// コンストラクタ
-	CAPSULE() : m_Radius(0.5f), m_HalfHeight(0.5f), m_Center(0.0f, 0.0f, 0.0f) {}
+	CAPSULE() : m_Radius(0.5f), m_HalfHeight(0.5f), m_Center(0.0f, 0.0f, 0.0f), m_Rotation(0.0f, 0.0f, 0.0f) {}
 	//CAPSULE() : m_Radius(0.5f), m_PointUpper(0, -0.5f, 0), m_PointLower(0, 0.5f, 0) {}
 
 	// カプセルをセット
-	void SetCapsule(float raius, float halfheight, D3DXVECTOR3 center)
+	void SetCapsule(float radius, float halfheight, D3DXVECTOR3 center, D3DXVECTOR3 rotation)
 	{
-		m_Radius = raius;
+		m_Radius = radius;
 		m_HalfHeight = halfheight;
 		m_Center = center;
+		m_Rotation = rotation;
 	}
 
 	// カプセルの中心座標を取得
@@ -408,19 +437,52 @@ struct CAPSULE
 		//PointLen += m_Radius;
 		//return PointLen;
 	}
+
 	// 上の球の座標を取得する
 	D3DXVECTOR3 GetUpperSpherePos()const
 	{
-		D3DXVECTOR3 rpos = m_Center;
-		rpos.y += m_HalfHeight - m_Radius;
-		return rpos;
+
+		// 回転を計算するために BeforePos には原点を中心として高さを与えておく
+		D3DXVECTOR3 BeforePos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		BeforePos.y = m_HalfHeight - m_Radius;
+
+		//	今の回転から回転行列を作成する
+		D3DXMATRIX rotmat;
+		D3DXMatrixRotationYawPitchRoll(&rotmat, m_Rotation.y, m_Rotation.x, m_Rotation.z);
+
+		// 頂点座標を回転行列で回転させて座標を取得する
+		D3DXVECTOR3 AfterPos;
+		D3DXVec3TransformCoord(&AfterPos, &BeforePos, &rotmat);	// BeforePosをrotmatで回転させたものがAfterPosに戻り値として入る。
+		
+		// 中心点座標に原点を中心とした回転を足す
+		D3DXVECTOR3 Upeer;
+		Upeer.x = m_Center.x + AfterPos.x;
+		Upeer.y = m_Center.y + AfterPos.y;
+		Upeer.z = m_Center.z + AfterPos.z;
+		return Upeer;
 	}
+
 	// 下の球の座標を取得する
 	D3DXVECTOR3 GetLowerSpherePos()const
 	{
-		D3DXVECTOR3 rpos = m_Center;
-		rpos.y += -m_HalfHeight + m_Radius;
-		return rpos;
+		// 回転を計算するために BeforePos には原点を中心として高さを与えておく
+		D3DXVECTOR3 BeforePos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		BeforePos.y = -m_HalfHeight + m_Radius;
+
+		//	今の回転から回転行列を作成する
+		D3DXMATRIX rotmat;
+		D3DXMatrixRotationYawPitchRoll(&rotmat, m_Rotation.y, m_Rotation.x, m_Rotation.z);
+
+		// 頂点座標を回転行列で回転させて座標を取得する
+		D3DXVECTOR3 AfterPos;
+		D3DXVec3TransformCoord(&AfterPos, &BeforePos, &rotmat);	// BeforePosをrotmatで回転させたものがAfterPosに戻り値として入る。
+
+		// 中心点座標に原点を中心とした回転を足す
+		D3DXVECTOR3 Upeer;
+		Upeer.x = m_Center.x + AfterPos.x;
+		Upeer.y = m_Center.y + AfterPos.y;
+		Upeer.z = m_Center.z + AfterPos.z;
+		return Upeer;
 	}
 };
 
@@ -799,6 +861,7 @@ static bool SPHERE_OBB(const SPHERE& sp, const OBB& obb, D3DXVECTOR3& retvec)
 		@return	なし
 		*/
 		//--------------------------------------------------------------------------------------
+// 線分側の最近接点が求まる
 static void ClosetPtPointSegment(const D3DXVECTOR3& c,
 	const D3DXVECTOR3& a, const D3DXVECTOR3& b,
 	float& t, D3DXVECTOR3& d) 
@@ -979,6 +1042,11 @@ static D3DXVECTOR3 CalcPlaneToPoint(OBB Aobb, int vertexnum, OBB Bobb, int plane
 	//backvec = Bobb.m_Normal[planenum] * len;
 	return backvec * 1.0f;
 }
+
+
+
+
+
 
 
 

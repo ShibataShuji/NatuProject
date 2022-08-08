@@ -24,17 +24,24 @@ void Enemy::Init()
 
 	// Componentの設定
 	// <Collision>
+	Collision* p_Collision = GetComponent<Collision>();
 	//　カプセルサイズの設定
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x, m_Position.y, m_Position.z), 100.0f, 100.0f);
-	GetComponent<Collision>()->SetMovable(false);
 
-	GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
-	GetComponent<Collision>()->LoadCollisionModel();
-	GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(2.0f, 2.0f, 2.0f));
+	//p_Collision->SetMovable(false);
+	//p_Collision->SetCollisionType(BOX_COLLISION);
+	//p_Collision->LoadCollisionModel();
+	//p_Collision->SetBoxScale(D3DXVECTOR3(2.0f, 0.5f, 2.0f));
 
-	//GetComponent<Collision>()->SetCollisionType(CAPSULE_COLLISION);
-	//GetComponent<Collision>()->LoadCollisionModel();
-	//GetComponent<Collision>()->SetCapsuleScale(1.0f, 1.5f);
+	p_Collision->SetMovable(false);
+	p_Collision->SetCollisionType(CAPSULE_COLLISION);
+	p_Collision->LoadCollisionModel();
+	p_Collision->SetCapsuleScale(2.0f, 4.5f);
+
+	//p_Collision->SetMovable(false);
+	//p_Collision->SetCollisionType(SPHERE_COLLISION);
+	//p_Collision->LoadCollisionModel();
+	//p_Collision->SetSphereScale(2.0f);
 
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "vertexLightingVS.cso");
@@ -65,7 +72,7 @@ void Enemy::Update()
 		m_Velocity.y = 0.25f;
 	}
 
-	// ジャンプ
+	// デバッグ用回転
 	if (Input::GetKeyTrigger(DIK_O))
 	{
 		m_Rotation.x += 0.1f;

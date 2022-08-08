@@ -6,6 +6,7 @@
 #include "scene.h"
 #include "manager.h"
 #include "gameObject.h"
+#include "camera.h"
 #include "Bullet.h"
 #include "Shadow.h"
 #include "audio.h"
@@ -59,9 +60,11 @@ class Gameobject;
 
 void Player::Init()
 {
-	// Componentの追加
-	AddComponent<Rigidbody>();
-	AddComponent<Collision>();
+	// Componentの追加と同時にアドレスをもらっておく
+	Rigidbody* p_Rigidbody_0 = AddComponent<Rigidbody>();
+	Collision* p_Collision_Ray = AddComponent<Collision>("Ray");		// Collisionは最期がいい
+	Collision* p_Collision_0 = AddComponent<Collision>();
+	Collision* p_Collision_1 = AddComponent<Collision>();
 
 	Player::SetBulletNumMax();
 	m_Model = new Model();
@@ -79,7 +82,7 @@ void Player::Init()
 	// Componentの設定
 	// <Collision>
 	//　カプセルコリジョンの設定
-	Collision* p_Collision = GetComponent<Collision>();
+	//Collision* p_Collision = GetComponent<Collision>();
 	//Point offset = { 0.0f,0.0f + m_Scale.y,0.0f };
 	//GetComponent<Collision>()->SetCollisionOffset(offset);
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x + offset.x, m_Position.y + offset.y, m_Position.z + offset.z),50.0f, 100.0f);
@@ -88,14 +91,36 @@ void Player::Init()
 	//GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
 	//GetComponent<Collision>()->LoadCollisionModel();
 	//GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
-	p_Collision->SetMovable(true);
-	p_Collision->SetCollisionType(BOX_COLLISION);
-	p_Collision->LoadCollisionModel();
-	p_Collision->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
+	
+	//p_Collision_0->SetMovable(true);
+	//p_Collision_0->SetCollisionType(BOX_COLLISION);
+	//p_Collision_0->LoadCollisionModel();
+	//p_Collision_0->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 
-	//GetComponent<Collision>()->SetCollisionType(CAPSULE_COLLISION);
-	//GetComponent<Collision>()->LoadCollisionModel();
-	//GetComponent<Collision>()->SetCapsuleScale(1.0f, 2.0f);		// カプセルはスフィアみたいに(1.0f,1.0f)にしたら0となってうまく処理が動かない。
+	p_Collision_0->SetMovable(true);
+	p_Collision_0->SetCollisionType(CAPSULE_COLLISION);
+	p_Collision_0->LoadCollisionModel();
+	p_Collision_0->SetCapsuleScale(1.0f, 2.0f);	// カプセルはスフィアみたいに(1.0f,1.0f)にしたら0となってうまく処理が動かない。
+
+	//p_Collision_0->SetMovable(true);
+	//p_Collision_0->SetCollisionType(SPHERE_COLLISION);
+	//p_Collision_0->LoadCollisionModel();
+	//p_Collision_0->SetSphereScale(1.0f);
+
+
+
+	p_Collision_1->SetMovable(true);
+	p_Collision_1->SetCollisionType(SPHERE_COLLISION);
+	p_Collision_1->LoadCollisionModel();
+	p_Collision_1->SetSphereScale(3.0f);
+
+	p_Collision_Ray->SetMovable(true);
+	p_Collision_Ray->SetCollisionType(RAY_COLLISION);
+	p_Collision_Ray->LoadCollisionModel();
+	
+
+
+
 
 	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout,"vertexLightingVS.cso");
 
@@ -132,7 +157,17 @@ void Player::Update()
 	// 親クラスのUpdateを呼んでいる。ここの中でコンポーネントのUpdateも呼ばれている。
 	GameObject::Update();
 
-	//_RPTN(_CRT_WARN, "Pos %f\n", m_Position.x);
+	// カメラのビューマトリクス取得
+	Scene* scene = Manager::GetScene();
+	Camera* p_camera = scene->GetGameObject<Camera>(0);
+	D3DXVECTOR3 CameraPosition = p_camera->GetPosition();		// カメラのポジション
+	D3DXVECTOR3 CameraForward = p_camera->GetCameraForward();	// カメラの向いてる方向ベクトル
+	float ray_length = 2.0f;
+	D3DXVECTOR3 RayStartPoint = CameraPosition;
+	D3DXVECTOR3 RayEndPoint = CameraPosition + (CameraForward * ray_length);
+
+	auto p_Collision_Ray = GetComponentWithName<Collision>("Ray");
+	p_Collision_Ray->SetRaySegment(RayStartPoint, RayEndPoint);			// レイの更新
 
 	// モデルを移動したりするときはここに書いたりする
 
@@ -142,6 +177,15 @@ void Player::Update()
 
 	D3DXVECTOR3 forward = GetForward();
 	D3DXVECTOR3 right = GetRight();
+
+	// デバッグ用回転
+	if (Input::GetKeyTrigger(DIK_P))
+	{
+		m_Rotation.x += 0.1f;
+		m_Rotation.z += 0.1f;
+	}
+
+
 
 	if (Input::GetKeyPress(DIK_A))
 	{

@@ -3,6 +3,7 @@
 #define OBJNUM (4)
 
 #include "CComponent.h"
+#include <string>
 #include <list>
 
 class GameObject
@@ -35,6 +36,7 @@ protected:	// アクセス指定子
 
 
 	std::list<CComponent*> m_ComponentList;
+	std::list<std::string> m_ComponentNameList;
 	std::list<GameObject*> m_Child;
 
 	/*GameObject*				m_Parent;*/
@@ -48,6 +50,10 @@ public:
 		for (auto c : m_ComponentList)
 			delete c;
 		m_ComponentList.clear();
+
+		//for (auto c : m_ComponentNameList)	// これはクラスじゃないのでdeleteする必要ない
+		//	delete c;
+		m_ComponentNameList.clear();
 
 		for (auto c : m_Child)
 			delete c;
@@ -238,6 +244,7 @@ public:
 		}
 	}
 
+	// コンポーネントを追加する。引き数で名前を付けることができる。空白の場合勝手に命名される
 	template <typename T>
 	T* AddComponent()
 	{
@@ -245,6 +252,17 @@ public:
 		T* ccomponent  = new T(this);
 		ccomponent->Init();
 		m_ComponentList.push_back(ccomponent);
+		m_ComponentNameList.push_back("noname");
+
+		return ccomponent;
+	}
+	template <typename T>
+	T* AddComponent(std::string name)
+	{
+		T* ccomponent = new T(this);
+		ccomponent->Init();
+		m_ComponentList.push_back(ccomponent);
+		m_ComponentNameList.push_back(name);
 
 		return ccomponent;
 	}
@@ -259,9 +277,36 @@ public:
 				return (T*)c;
 			}
 		}
-
 		return nullptr;
+	}
 
+	// このゲームオブジェクトの中に引き数の名前をつけているコンポーネントがあればそのコンポーネントを返す
+	// あってはならないが複数あったらリストの最初のものが返る
+	template <typename T>
+	T* GetComponentWithName(std::string name)
+	{
+		int itrCount = 0;
+		for (auto cName : m_ComponentNameList)
+		{
+			// 文字列が同じものがあったら
+			if (name == cName)
+			{
+				auto itr = m_ComponentList.begin();		// 本当は std::list<int>::iterator itr だけどautoで省略
+				for (int i = 0; i < itrCount; i++)
+				{
+					++itr;
+				}
+				return (T*)*itr;						// itrはポインタなので*itrで中身を返してあげる
+			}
+
+			itrCount++;
+		}
+		return nullptr;
+	}
+	
+	std::list<CComponent*> GetComponentList()
+	{
+		return m_ComponentList;
 	}
 
 	template <typename T>
@@ -278,12 +323,15 @@ public:
 	}
 
 
+
 	bool GetOnTheGround()
 	{
 		return m_OnTheGround;
 	}
+	// tempも同時にセットされる
 	void SetOnTheGround(bool setbool)
 	{
+		m_temp_OnTheGround = setbool;
 		m_OnTheGround = setbool;
 	}
 	bool GetTempOnTheGround()
