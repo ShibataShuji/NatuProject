@@ -33,6 +33,18 @@ public:
 		return gameObject;		// 生成したインスタンスのポインタが入っている
 	}
 
+	//template <typename T>	//テンプレート関数
+	//T* ChangeGameObject(int Layer, GameObject* gameobject)
+	//{
+	//	DeleteGameObject(gameobject);
+
+	//	T* gameObject = new T();
+	//	gameObject->Init();
+	//	m_GameObject[Layer].push_back(gameObject);
+
+	//	return gameObject;		// 生成したインスタンスのポインタが入っている
+	//}
+
 
 	// ひとつだけしかみつけれないやつ
 	template <typename T>	//テンプレート関数

@@ -8,9 +8,11 @@
 #include "gameObject.h"
 #include "camera.h"
 #include "Bullet.h"
+#include "Enemy.h"
 #include "Shadow.h"
 #include "audio.h"
 #include "Rigidbody.h"
+#include "HandGameObject.h"
 #include "Collision.h"
 #include "Platform.h"
 
@@ -61,6 +63,7 @@ class Gameobject;
 void Player::Init()
 {
 	// Componentの追加と同時にアドレスをもらっておく
+	HandGameObject* p_HandGameObject_0 = AddComponent<HandGameObject>("HandGameObject");
 	Rigidbody* p_Rigidbody_0 = AddComponent<Rigidbody>();
 	Collision* p_Collision_Ray = AddComponent<Collision>("Ray");		// Collisionは最期がいい
 	Collision* p_Collision_0 = AddComponent<Collision>();
@@ -162,12 +165,66 @@ void Player::Update()
 	Camera* p_camera = scene->GetGameObject<Camera>(0);
 	D3DXVECTOR3 CameraPosition = p_camera->GetPosition();		// カメラのポジション
 	D3DXVECTOR3 CameraForward = p_camera->GetCameraForward();	// カメラの向いてる方向ベクトル
-	float ray_length = 2.0f;
+	float ray_length = 10.0f;
 	D3DXVECTOR3 RayStartPoint = CameraPosition;
 	D3DXVECTOR3 RayEndPoint = CameraPosition + (CameraForward * ray_length);
 
 	auto p_Collision_Ray = GetComponentWithName<Collision>("Ray");
 	p_Collision_Ray->SetRaySegment(RayStartPoint, RayEndPoint);			// レイの更新
+
+
+	D3DXVECTOR3 ColPoint   = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 Normal	   = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 SpawnSize  = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+	D3DXVECTOR3 SpawnPoint = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	// 衝突地点にブロックを配置する時の座標の更新
+	if (p_Collision_Ray->GetRay().HitCollision != nullptr)
+	{
+		ColPoint = p_Collision_Ray->GetRay().m_CollisionPoint;	// レイの衝突点の取得
+		Normal = p_Collision_Ray->GetRay().m_normal;				// 衝突点からの法線の取得
+
+		SpawnSize = D3DXVECTOR3(2.0f, 0.5f, 2.0f);					// 配置するブロックのサイズの取得(回転を考慮する)												// 配置する座標
+		SpawnPoint.x = ColPoint.x + (SpawnSize.x * Normal.x);
+		SpawnPoint.y = ColPoint.y + (SpawnSize.y * Normal.y);
+		SpawnPoint.z = ColPoint.z + (SpawnSize.z * Normal.z);
+	}
+
+
+	// レイで衝突したところに、現在手に持っている(指定中の)ブロックを配置場所に表示する	
+	auto p_HandGameObjectComponent = GetComponentWithName<HandGameObject>("HandGameObject");
+	auto p_HandGameObject = p_HandGameObjectComponent->GetHandGameObject();
+
+	// 現在手に持ってるブロックの更新(今はとりあえずEnemyでやってる)
+	if (p_HandGameObject == nullptr)
+	{
+		// 手に持っているものが設定されてない場合
+		Scene* scene = Manager::GetScene();
+		//Enemy* enemy = scene->AddGameObject<Enemy>(1);
+		auto tempObject = scene->AddGameObject<Enemy>(1);
+		tempObject->SetPosition(SpawnPoint);
+		tempObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+
+		p_HandGameObjectComponent->SetHandGameObject(tempObject);
+
+	}
+	else
+	{
+		// 手に持っているものが設定されてる場合
+		p_HandGameObject->SetPosition(SpawnPoint);
+		p_HandGameObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+
+
+		// 手に持っているものを他のものにする(現在はデバック用にぷらっとフォームにしている)
+		if (Input::GetKeyTrigger(DIK_SPACE))
+		{
+			p_HandGameObject->SetDestroy();
+			auto tempObject = scene->AddGameObject<Platform>(1);
+
+			p_HandGameObjectComponent->SetHandGameObject(tempObject);
+		}
+
+	}
+	
 
 	// モデルを移動したりするときはここに書いたりする
 
@@ -261,16 +318,25 @@ void Player::Update()
 	// トリガーは押した瞬間だけ
 	if (Input::GetKeyTrigger(DIK_SPACE))
 	{
+		// 衝突地点にブロックを配置する。衝突していない場合は何もしない。
+		if (p_Collision_Ray->GetRay().HitCollision != nullptr)
+		{
+			Scene* scene = Manager::GetScene();
+			Enemy* enemy = scene->AddGameObject<Enemy>(1);
+			enemy->SetPosition(SpawnPoint);
+		}
+
 		// 弾が1発以上あるなら
 		if (m_BulletNum >= 1)
 		{
-			m_BulletNum--;
-			Scene* scene = Manager::GetScene();
-			Bullet* bullet = scene->AddGameObject<Bullet>(1);
-			bullet->SetPosition(m_Position);
-			bullet->SetVelocity(forward * 0.3);
 
-			m_ShotSE->Play();
+			//m_BulletNum--;
+			//Scene* scene = Manager::GetScene();
+			//Bullet* bullet = scene->AddGameObject<Bullet>(1);
+			//bullet->SetPosition(m_Position);
+			//bullet->SetVelocity(forward * 0.3);
+
+			//m_ShotSE->Play();
 		}
 	}
 

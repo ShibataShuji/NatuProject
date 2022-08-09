@@ -360,17 +360,19 @@ struct SEGMENT
 struct RAY
 {
 	SEGMENT		m_Segment;	
-	float		m_length;		// スタート位置から一番近い衝突点への長さ
-	Collision* HitCollision;	// 衝突したうちの一番近いもの
+	float		m_length;				// スタート位置から一番近い衝突点への長さ
+	D3DXVECTOR3 m_normal;				// 衝突してるコリジョンからの法線
+	D3DXVECTOR3 m_CollisionPoint;		// 衝突してる座標
+	Collision*	HitCollision;			// 衝突したうちの一番近いもの
 
-	RAY() : m_length(999), HitCollision(nullptr){ }
+	RAY() : m_length(999), m_normal(0.0f, 0.0f, 0.0f), m_CollisionPoint(0.0f, 0.0f, 0.0f), HitCollision(nullptr){ }
 
-	// 衝突点を取得する
-	D3DXVECTOR3 GetCollisionPoint()
+	// 長さと法線から衝突点を計算する。
+	void CalcCollisionPointwithLengthNormal()
 	{
 		D3DXVECTOR3 normal = m_Segment.GetNormalVector();
 		D3DXVECTOR3 CollisionPoint = m_Segment.m_pos1 + (normal * m_length);
-		return CollisionPoint;
+		m_CollisionPoint = CollisionPoint;
 	}
 
 

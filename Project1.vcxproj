@@ -203,6 +203,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="gameObject.h" />
     <ClInclude Include="gui.h" />
+    <ClInclude Include="HandGameObject.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_impl_dx11.h" />

@@ -11,10 +11,10 @@ Model* Enemy::m_Model;
 
 void Enemy::Init()
 {
-	AddComponent<Rigidbody>();
+	//AddComponent<Rigidbody>();
 	AddComponent<Collision>();
 
-	m_Position = D3DXVECTOR3(0.0f, 1.0f, 5.0f);
+	m_Position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	//m_Scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 	SetInitScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
@@ -28,15 +28,15 @@ void Enemy::Init()
 	//　カプセルサイズの設定
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x, m_Position.y, m_Position.z), 100.0f, 100.0f);
 
-	//p_Collision->SetMovable(false);
-	//p_Collision->SetCollisionType(BOX_COLLISION);
-	//p_Collision->LoadCollisionModel();
-	//p_Collision->SetBoxScale(D3DXVECTOR3(2.0f, 0.5f, 2.0f));
-
 	p_Collision->SetMovable(false);
-	p_Collision->SetCollisionType(CAPSULE_COLLISION);
+	p_Collision->SetCollisionType(BOX_COLLISION);
 	p_Collision->LoadCollisionModel();
-	p_Collision->SetCapsuleScale(2.0f, 4.5f);
+	p_Collision->SetBoxScale(D3DXVECTOR3(2.0f, 0.5f, 2.0f));
+
+	//p_Collision->SetMovable(false);
+	//p_Collision->SetCollisionType(CAPSULE_COLLISION);
+	//p_Collision->LoadCollisionModel();
+	//p_Collision->SetCapsuleScale(2.0f, 4.5f);
 
 	//p_Collision->SetMovable(false);
 	//p_Collision->SetCollisionType(SPHERE_COLLISION);

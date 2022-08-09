@@ -251,6 +251,9 @@
     <ClInclude Include="imstb_truetype.h">
       <Filter>ヘッダー ファイル\Imgui</Filter>
     </ClInclude>
+    <ClInclude Include="HandGameObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="unlitTextureVS.hlsl" />
