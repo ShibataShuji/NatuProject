@@ -24,7 +24,8 @@ public:
 
 	void Init() override 
 	{
-
+		m_CompName = "Rigidbody";
+		m_CompId = RigidbodyId;
 	}
 
 	void Uninit() override

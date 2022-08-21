@@ -2,9 +2,36 @@
 
 #define OBJNUM (4)
 
+//#include "ComponentListManager.h"
 #include "CComponent.h"
 #include <string>
 #include <list>
+#include <cstring>
+#include <fstream>
+
+
+// セーブデータに保存されるもの
+// 配置されている情報
+struct StructPlacedObjectData		
+{
+	char		sm_name[64] = "null";
+	D3DXVECTOR3 sm_Position = { 0.0f, 0.0f, 0.0f };
+	D3DXVECTOR3 sm_Rotation = { 0.0f, 0.0f, 0.0f };
+	D3DXVECTOR3 sm_Scale = { 1.0f, 1.0f, 1.0f };
+	D3DXVECTOR3 sm_ScaleRate = { 1.0f, 1.0f, 1.0f };
+
+};
+
+// オブジェクトの内部データの情報
+struct StructObjectData
+{
+	char		sm_name[64] = "null";
+	char		sm_modelname[64] = "null";
+	int			sm_componentlist[32];			// 注意 初期化できてないので使う前に初期化する
+
+};
+
+
 
 class GameObject
 {
@@ -22,6 +49,11 @@ protected:	// アクセス指定子
 	D3DXVECTOR3	m_Velocity = D3DXVECTOR3(0.0f, 0.0f, 0.0f);		// 現在の速度ベクトル
 
 	int			m_TagNum = 0;
+
+	std::string		m_name = "null";
+	std::string		m_modelname = "null";
+
+	int			m_DoSave = 0;			// 保存するときにセーブされるかどうか
 
 	bool		m_OnTheGround = false;
 	bool		m_temp_OnTheGround = false;
@@ -63,6 +95,11 @@ public:
 	int Gettagnum()
 	{
 		return m_TagNum;
+	}
+
+	void Load()
+	{
+
 	}
 
 	virtual void Init()	// 純粋仮想関数
@@ -158,6 +195,11 @@ public:
 
 	//D3DXVECTOR3 GetTempVelocity() { return m_temp_Velocity; }
 	//void SetTempVelocity(D3DXVECTOR3 Velocity) { m_temp_Velocity = Velocity; }
+
+	int GetDoSave()
+	{
+		return m_DoSave;
+	}
 
 	void SetDestroy() { m_Destroy = true; }
 
@@ -343,6 +385,76 @@ public:
 		m_temp_OnTheGround = settempbool;
 	}
 
+
+
+	StructPlacedObjectData GetStructPlacedObjectData()
+	{
+		
+		StructPlacedObjectData re;
+		std::memcpy(re.sm_name, m_name.c_str(), strlen(m_name.c_str()) + 1);	// string型->char[64]へ変換
+		re.sm_Position = m_Position;
+		re.sm_Rotation = m_Rotation;
+		re.sm_Scale = m_InitScale;
+		re.sm_ScaleRate = m_ScaleRate;
+
+		return re;
+	}
+
+	void GetModelName(char* modelnamearray)
+	{
+		std::memcpy(modelnamearray, m_name.c_str(), strlen(m_name.c_str()) + 1);	// string型->char[64]へ変換
+
+	}
+
+	//StructObjectData GetStructObjectData()
+	//{
+
+	//	StructObjectData re;
+	//	std::memcpy(re.sm_name, m_name.c_str(), strlen(m_name.c_str()) + 1);	// string型->char[64]へ変換
+	//	std::memcpy(re.sm_modelname, m_modelname.c_str(), strlen(m_modelname.c_str()) + 1);	// string型->char[64]へ変換
+	//	
+
+		//// リストの初期化
+		//for (int i = 0; i < 32; i++)
+		//{
+		//	re.sm_componentlist[i] = 0;
+		//}
+		//int count = 0;
+		//for (auto Comp : m_ComponentList)	// リストにコンポーネントIDを入れていく。0で初期化してあるので範囲外は0
+		//{
+		//	re.sm_componentlist[count] = Comp->GetComponentID();
+		//	count++;
+		//}
+
+	//	return re;
+	//}
+
+	int GetComponentNum()
+	{
+		int count = 0;
+		for (auto Comp : m_ComponentList)
+		{
+			count++;
+		}
+		return count;
+	}
+
+	// 既にopenしてあるobjファイルのアドレスをもらう
+	void SaveComponent(std::fstream* Objfile)
+	{
+		// コンポーネントがあるだけ書き込む
+		// ここではコンポーネントのIDだけを書き込む
+		for (auto Comp : m_ComponentList)
+		{
+			int compid = Comp->GetComponentID();
+			Objfile->write((char*)&compid, sizeof(compid));
+
+			// 次にそのコンポーネントの設定を書き込む、これはコンポーネントによって内容も量も違う
+			Comp->Save(Objfile);
+
+		}
+	}
+	// ファイルを閉じるのはSavedata.cppの方でやってる
 
 };
 

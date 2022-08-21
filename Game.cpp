@@ -23,6 +23,8 @@
 #include "audio.h"
 #include "Score.h"
 
+#include "Rigidbody.h"
+
 Audio* bgm;
 
 void Game::Init()
@@ -42,9 +44,10 @@ void Game::Init()
 	AddGameObject<Player>(1);
 	Enemy* p_Enemy_0 = AddGameObject<Enemy>(1); 
 	p_Enemy_0->SetPosition(D3DXVECTOR3(2.0f, 1.0f, 5.0f));
+	//p_Enemy_0->AddComponent<Rigidbody>();
 	//p_Enemy_0->SetScaleRate(D3DXVECTOR3(2.0f, 5.0f, 2.0f));
-	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(0.0f, 1.0f, 5.0f));
-	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(3.0f, 1.0f, 5.0f));
+	/*AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(0.0f, 1.0f, 5.0f));
+	AddGameObject<Enemy>(1)->SetPosition(D3DXVECTOR3(3.0f, 1.0f, 5.0f));*/
 
 	Platform* platform = AddGameObject<Platform>(1);
 	platform->SetPosition(D3DXVECTOR3(0.0f, 0.0f, 10.0f));
@@ -117,13 +120,13 @@ void Game::Update()
 
 
 	//// ìGÉLÉÉÉâÇ™Ç¢Ç»Ç≠Ç»Ç¡ÇΩÇÁÅ`
-	//Scene* scene = Manager::GetScene();
-	//std::vector<Enemy*> enemys = scene->GetGameObjects<Enemy>(1);
-	//int AliveEnemyNum = 0;
-	//for (auto& i : enemys)
-	//{
-	//	AliveEnemyNum++;
-	//}
+	Scene* scene = Manager::GetScene();
+	std::vector<Enemy*> enemys = scene->GetGameObjects<Enemy>(1);
+	int AliveEnemyNum = 0;
+	for (auto& i : enemys)
+	{
+		AliveEnemyNum++;
+	}
 	//if (AliveEnemyNum == 0)
 	//{
 	//	Manager::SetScene<Result>();

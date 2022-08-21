@@ -235,12 +235,12 @@ void Player::Update()
 	D3DXVECTOR3 forward = GetForward();
 	D3DXVECTOR3 right = GetRight();
 
-	// デバッグ用回転
-	if (Input::GetKeyTrigger(DIK_P))
-	{
-		m_Rotation.x += 0.1f;
-		m_Rotation.z += 0.1f;
-	}
+	//// デバッグ用回転
+	//if (Input::GetKeyTrigger(DIK_P))
+	//{
+	//	m_Rotation.x += 0.1f;
+	//	m_Rotation.z += 0.1f;
+	//}
 
 
 

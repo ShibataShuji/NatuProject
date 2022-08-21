@@ -158,6 +158,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CGameObject.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="ComponentListManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="field.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="OriginalBlock.cpp" />
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="playerSankou.cpp" />
@@ -182,6 +184,7 @@
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="Resultlogo.cpp" />
+    <ClCompile Include="Savedata.cpp" />
     <ClCompile Include="Score.cpp" />
     <ClCompile Include="Shadow.cpp" />
     <ClCompile Include="Sky.cpp" />
@@ -197,11 +200,13 @@
     <ClInclude Include="CGameObject.h" />
     <ClInclude Include="CComponent.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="ComponentListManager.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Explosion.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="gameObject.h" />
+    <ClInclude Include="GameObjectClassList.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="HandGameObject.h" />
     <ClInclude Include="imconfig.h" />
@@ -216,6 +221,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="manager.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="OriginalBlock.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="polygon2D.h" />
@@ -224,6 +230,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="Resultlogo.h" />
     <ClInclude Include="Rigidbody.h" />
+    <ClInclude Include="Savedata.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="Shadow.h" />

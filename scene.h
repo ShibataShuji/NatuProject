@@ -5,6 +5,14 @@
 #include <typeinfo>
 #include "gameObject.h"
 #include "CComponent.h"
+#include "input.h"
+
+#include "Savedata.h"
+
+using namespace std;
+
+static class Savedata* m_Savedata;
+ 
 
 // Sceneクラスを継承してタイトル、ゲーム、リザルト、等作っていく。
 
@@ -100,8 +108,7 @@ public:
 
 
 
-	// 全て見つけるやつ
-	// GameObjectのアドレスの場所を配列に格納していく。
+	// 全てのゲームオブジェクトのリストをゲットする(レイヤーは別)
 	std::vector<GameObject*> GetAllGameObjects(int Layer)
 	{
 		std::vector<GameObject*> objects; // STLの配列
@@ -131,13 +138,22 @@ public:
 
 	virtual void Update()
 	{
+		// 配置したブロックのセーブ、書き込み
+		if (Input::GetKeyTrigger(DIK_P))
+		{
+			m_Savedata->Save();
+		}
+
+
 		for (int i = 0; i < 3; i++)
 		{
+			// ゲームオブジェクト全てのアップデート
 			for (GameObject* object : m_GameObject[i])	// 範囲forループ
 			{
 				object->Update();
 			}
 
+			// Destroy関数で消す予約されていたら消す。すぐ消すんじゃなくてここで消すことで処理に問題が発生しない
 			m_GameObject[i].remove_if([](GameObject* object) {return object->Destroy(); });		// ラムダ式
 		}
 	}

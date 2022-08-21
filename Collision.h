@@ -27,6 +27,20 @@ static const int	RESPONSE_IGNORE	 = 0;
 static const int	RESPONSE_OVERLAP = 1;
 static const int	RESPONSE_BLOCK   = 2;
 
+
+
+struct StructCollisionData
+{
+	int			sm_Collision_type = BOX_COLLISION;		// カプセル子リジョンなのかボックスなのかとかを設定する
+	bool		sm_Movable = false;
+	float		sm_OnTheGroundCheckNormal = 0.7f;	// 0.0f~1.0f 接地判定の時、衝突した時の方向ベクトルyがこれ以上のときに接地判定をtrueにする
+	int			sm_ResponseType = RESPONSE_BLOCK;
+
+	D3DXVECTOR3 sm_InitColRotation = { 0.0f, 0.0f, 0.0f };
+	D3DXVECTOR3 sm_ColInitScale = { 1.0f, 1.0f, 1.0f };
+
+};
+
 class Collision : public CComponent
 {
 private:
@@ -38,6 +52,7 @@ private:
 
 	// すべてのコリジョンタイプで使うやつ。Radius = ColScale.xで考える
 	D3DXVECTOR3 m_ColRotation = { 0.0f, 0.0f, 0.0f };
+	D3DXVECTOR3 m_ColInitRotation = { 0.0f, 0.0f, 0.0f };
 	D3DXVECTOR3 m_ColScale = { 1.0f, 1.0f, 1.0f };
 	D3DXVECTOR3 m_ColInitScale = { 1.0f, 1.0f, 1.0f };
 
@@ -109,7 +124,8 @@ public:
 
 	void Init() override
 	{
-
+		m_CompName = "Collision";
+		m_CompId = CollisionId;
 
 		Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "vertexLightingVS.cso");
 
@@ -168,18 +184,18 @@ public:
 		// コリジョンタイプによる更新
 		if (m_Collision_type == BOX_COLLISION)
 		{
-			m_ColRotation = m_ParentGameObject->GetRotation();
+			m_ColRotation = m_ColInitRotation + m_ParentGameObject->GetRotation();
 
 		}
 		else if (m_Collision_type == CAPSULE_COLLISION)
 		{
 			// カプセルは縦固定
 			//m_ColRotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			m_ColRotation = m_ParentGameObject->GetRotation();		// 一応これでカプセルも回転するけど球それぞれで回転
+			m_ColRotation = m_ColInitRotation + m_ParentGameObject->GetRotation();		// 一応これでカプセルも回転するけど球それぞれで回転
 		}
 		else if (m_Collision_type == SPHERE_COLLISION)
 		{
-			m_ColRotation = m_ParentGameObject->GetRotation();
+			m_ColRotation = m_ColInitRotation + m_ParentGameObject->GetRotation();
 		}
 		else if (m_Collision_type == RAY_COLLISION)
 		{
@@ -229,7 +245,7 @@ public:
 		{
 			// otherに衝突相手の親オブジェクト(ゲームオブジェクト)のポインターが入っている
 
-			// 自分だったらコンテニュー
+			// 自分だったらコンテニュー。同じオブジェクトが複数持っててもここで無視される
 			if (other == m_ParentGameObject)
 				continue;
 
@@ -765,6 +781,12 @@ public:
 
 
 	}
+
+
+
+
+
+
 
 
 	void SetColInitScale(D3DXVECTOR3 setcolscale)
@@ -1660,166 +1682,56 @@ public:
 
 
 
+	void InitforSaveData(std::fstream* p_file)
+	{
+		StructCollisionData scd;
+		p_file->read((char*)&scd, sizeof(scd));
+
+		m_Collision_type = scd.sm_Collision_type;
+		m_Movable = scd.sm_Movable;
+		m_OnTheGroundCheckNormal = scd.sm_OnTheGroundCheckNormal;
+		m_ResponseType = scd.sm_ResponseType;
+		m_ColInitRotation = scd.sm_InitColRotation;
+		m_ColInitScale = scd.sm_ColInitScale;
+
+		LoadCollisionModel();
+	}
+
+	void SCDtoReal(StructCollisionData scd)
+	{
+		m_Collision_type = scd.sm_Collision_type;
+		m_Movable = scd.sm_Movable;
+		m_OnTheGroundCheckNormal = scd.sm_OnTheGroundCheckNormal;
+		m_ResponseType = scd.sm_ResponseType;
+		m_ColInitRotation = scd.sm_InitColRotation;
+		m_ColInitScale = scd.sm_ColInitScale;
+	}
+
+	StructCollisionData RealtoSCD()
+	{
+		StructCollisionData scd;
+
+		scd.sm_Collision_type = m_Collision_type;
+		scd.sm_Movable = m_Movable;
+		scd.sm_OnTheGroundCheckNormal = m_OnTheGroundCheckNormal;
+		scd.sm_ResponseType = m_ResponseType;
+		scd.sm_InitColRotation = m_ColInitRotation;
+		scd.sm_ColInitScale = m_ColInitScale;
+
+		return scd;
+	}
 
 
+	void Save(std::fstream* Objfile) override
+	{
+		// ここではこのコンポーネントの設定を書き込む
+		StructCollisionData scd;
+		scd = RealtoSCD();
+
+
+		Objfile->write((char*)&scd, sizeof(scd));
+
+
+	}
 
 };
-
-
-
-
-
-
-//// OBB v.s. OBB
-//bool OBBOBB(OBB& obb1, OBB& obb2)
-//{
-//	// 各方向ベクトルの確保
-//	// （N***:標準化方向ベクトル）
-//	D3DXVECTOR3 NAe1 = obb1.GetRotNormalVector(0), Ae1 = NAe1 * obb1.GetRotNormalLength(0);
-//	D3DXVECTOR3 NAe2 = obb1.GetRotNormalVector(1), Ae2 = NAe2 * obb1.GetRotNormalLength(1);
-//	D3DXVECTOR3 NAe3 = obb1.GetRotNormalVector(2), Ae3 = NAe3 * obb1.GetRotNormalLength(2);
-//	D3DXVECTOR3 NBe1 = obb2.GetRotNormalVector(0), Be1 = NBe1 * obb2.GetRotNormalLength(0);
-//	D3DXVECTOR3 NBe2 = obb2.GetRotNormalVector(1), Be2 = NBe2 * obb2.GetRotNormalLength(1);
-//	D3DXVECTOR3 NBe3 = obb2.GetRotNormalVector(2), Be3 = NBe3 * obb2.GetRotNormalLength(2);
-//	D3DXVECTOR3 Interval = obb1.m_Center - obb2.m_Center;
-//
-//	// 分離軸 : Ae1
-//	FLOAT rA = D3DXVec3Length(&Ae1);
-//	FLOAT rB = LenSegOnSeparateAxis(&NAe1, &Be1, &Be2, &Be3);
-//	FLOAT L = fabs(D3DXVec3Dot(&Interval, &NAe1));
-//	if (L > rA + rB)
-//		return false; // 衝突していない
-//
-//	 // 分離軸 : Ae2
-//	rA = D3DXVec3Length(&Ae2);
-//	rB = LenSegOnSeparateAxis(&NAe2, &Be1, &Be2, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &NAe2));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : Ae3
-//	rA = D3DXVec3Length(&Ae3);
-//	rB = LenSegOnSeparateAxis(&NAe3, &Be1, &Be2, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &NAe3));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : Be1
-//	rA = LenSegOnSeparateAxis(&NBe1, &Ae1, &Ae2, &Ae3);
-//	rB = D3DXVec3Length(&Be1);
-//	L = fabs(D3DXVec3Dot(&Interval, &NBe1));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : Be2
-//	rA = LenSegOnSeparateAxis(&NBe2, &Ae1, &Ae2, &Ae3);
-//	rB = D3DXVec3Length(&Be2);
-//	L = fabs(D3DXVec3Dot(&Interval, &NBe2));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : Be3
-//	rA = LenSegOnSeparateAxis(&NBe3, &Ae1, &Ae2, &Ae3);
-//	rB = D3DXVec3Length(&Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &NBe3));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C11
-//	D3DXVECTOR3 Cross;
-//	D3DXVec3Cross(&Cross, &NAe1, &NBe1);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C12
-//	D3DXVec3Cross(&Cross, &NAe1, &NBe2);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C13
-//	D3DXVec3Cross(&Cross, &NAe1, &NBe3);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae2, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C21
-//	D3DXVec3Cross(&Cross, &NAe2, &NBe1);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C22
-//	D3DXVec3Cross(&Cross, &NAe2, &NBe2);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C23
-//	D3DXVec3Cross(&Cross, &NAe2, &NBe3);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae3);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C31
-//	D3DXVec3Cross(&Cross, &NAe3, &NBe1);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be2, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C32
-//	D3DXVec3Cross(&Cross, &NAe3, &NBe2);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be3);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離軸 : C33
-//	D3DXVec3Cross(&Cross, &NAe3, &NBe3);
-//	rA = LenSegOnSeparateAxis(&Cross, &Ae1, &Ae2);
-//	rB = LenSegOnSeparateAxis(&Cross, &Be1, &Be2);
-//	L = fabs(D3DXVec3Dot(&Interval, &Cross));
-//	if (L > rA + rB)
-//		return false;
-//
-//	// 分離平面が存在しないので「衝突している」
-//	return true;
-//}
-//
-//
-//// 分離軸に投影された軸成分から投影線分長を算出
-//FLOAT LenSegOnSeparateAxis(D3DXVECTOR3* Sep, D3DXVECTOR3* e1, D3DXVECTOR3* e2, D3DXVECTOR3* e3 = 0)
-//{
-//	// 3つの内積の絶対値の和で投影線分長を計算
-//	// 分離軸Sepは標準化されていること
-//	FLOAT r1 = fabs(D3DXVec3Dot(Sep, e1));
-//	FLOAT r2 = fabs(D3DXVec3Dot(Sep, e2));
-//	FLOAT r3 = e3 ? (fabs(D3DXVec3Dot(Sep, e3))) : 0;
-//	return r1 + r2 + r3;
-//}
-
-
-
-
-//_RPTN(_CRT_WARN, "%f, %f, %f\n", cp_OBB.x, cp_OBB.y, cp_OBB.z);
-//_RPTN(_CRT_WARN, "%f, %f, %f\n", cp_Capsule.x, cp_Capsule.y, cp_Capsule.z);
-//_RPTN(_CRT_WARN, "%f, %f, %f\n", distance.x, distance.y, distance.z);
-//_RPTN(_CRT_WARN, "%f\n", length);
-////_RPTN(_CRT_WARN, "%f, %f, %f\n", normal.x, normal.y, normal.z);
-//_RPTN(_CRT_WARN, "%d\n", flag);
