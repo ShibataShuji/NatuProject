@@ -1,8 +1,5 @@
 #pragma once
 
-#include "gameObject.h"
-#include "model.h"
-
 
 static const int MaxBulletNum = 5;
 

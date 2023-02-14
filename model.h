@@ -2,6 +2,7 @@
 
 
 
+
 // マテリアル構造体
 struct MODEL_MATERIAL
 {
@@ -43,6 +44,7 @@ class Model
 {
 private:
 
+	std::string		m_ModelName;
 	ID3D11Buffer*	m_VertexBuffer;
 	ID3D11Buffer*	m_IndexBuffer;
 
@@ -60,5 +62,14 @@ public:
 	// テクスチャ貼ってないとダメ。白とかだけでもつけてね。
 	void Load( const char *FileName );
 	void Unload();
+
+	void SetModelName(std::string modelname)
+	{
+		m_ModelName = modelname;
+	}
+	std::string GetModelName()
+	{
+		return m_ModelName;
+	}
 
 };

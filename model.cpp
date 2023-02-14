@@ -1,12 +1,20 @@
 
+#include "stdafx.h"
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
-#include "main.h"
-#include "renderer.h"
-#include "model.h"
+//#include "main.h"
+//#include "renderer.h"
+//#include "model.h"
+//#include <D3Dcommon.h>
+//#include <DXGIFormat.h>
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include <cassert>
+//#include <d3dx9.h>
 
 
 
@@ -28,7 +36,12 @@ void Model::Draw()
 	for( unsigned int i = 0; i < m_SubsetNum; i++ )
 	{
 		// マテリアル設定
-		Renderer::SetMaterial( m_SubsetArray[i].Material.Material );
+		//Renderer::SetMaterial( m_SubsetArray[i].Material.Material );
+		// マテリアル設定
+		MATERIAL material;
+		ZeroMemory(&material, sizeof(material));
+		material.Diffuse = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f);
+		Renderer::SetMaterial(material);
 
 		// テクスチャ設定
 		Renderer::GetDeviceContext()->PSSetShaderResources( 0, 1, &m_SubsetArray[i].Material.Texture );

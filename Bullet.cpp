@@ -1,12 +1,16 @@
-#include "main.h"
-#include "renderer.h"
-#include "model.h"
-#include "Bullet.h"
-#include "scene.h"
-#include "manager.h"
-#include "gameObject.h"
-#include "Explosion.h"
-#include "Enemy.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "renderer.h"
+//#include "Bullet.h"
+//#include "scene.h"
+//#include "manager.h"
+//#include "gameObject.h"
+//#include "Explosion.h"
+//#include "Enemy.h"
+//#include <d3dx9.h>
+//#include <D3D11.h>
 
 Model* Bullet::m_Model;	// スタティックメンバ変数
 						// バレットクラスでstatic class で作ってるので。
@@ -103,7 +107,7 @@ void Bullet::Load()
 	// staticにすると普通のグローバル変数と、普通の関数って感じの扱いと同じだから。
 
 	m_Model = new Model();
-	m_Model->Load("asset\\model\\torus.obj");
+	m_Model->Load("asset\\model\\Torus.obj");
 }
 
 void Bullet::Unload()

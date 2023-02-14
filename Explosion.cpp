@@ -1,9 +1,16 @@
-#include "main.h"
-#include "manager.h"
-#include "renderer.h"
-#include "Explosion.h"
-#include "camera.h"
-#include "scene.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "manager.h"
+//#include "renderer.h"
+//#include "Explosion.h"
+//#include "camera.h"
+//#include "scene.h"
+//#include <dinput.h>
+//#include "main.h"
+//#include "input.h"
+//#include <D3D11.h>
 
 
 void Explosion::Init()

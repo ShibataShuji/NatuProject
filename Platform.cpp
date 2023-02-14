@@ -1,7 +1,15 @@
-#include "main.h"
-#include "renderer.h"
-#include "model.h"
-#include "Platform.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "renderer.h"
+////#include "model.h"
+//#include "Platform.h"
+//#include <d3dx9.h>
+//#include <D3D11.h>
+//#include "model.h"
+//
+//#include "gameObject.h"
 
 Model* Platform::m_Model;
 
@@ -58,7 +66,7 @@ void Platform::Draw()
 void Platform::Load()
 {
 	m_Model = new Model();
-	m_Model->Load("asset\\model\\cylinder.obj");
+	m_Model->Load("asset\\model\\CollisionModel\\cylinder.obj");
 }
 
 void Platform::Unload()

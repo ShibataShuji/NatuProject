@@ -1,6 +1,20 @@
-#include "main.h"
-#include "renderer.h"
-#include "field.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "manager.h"
+//#include "renderer.h"
+//#include "field.h"
+//#include "camera.h"
+//#include "scene.h"
+//#include <dinput.h>
+//#include "main.h"
+//#include "input.h"
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include <cassert>
+//#include <d3dx9.h>
+
 
 
 void Field::Init()
@@ -43,7 +57,7 @@ void Field::Init()
 
 	// テクスチャ読み込み
 	D3DX11CreateShaderResourceViewFromFile(Renderer::GetDevice(),
-		"asset/texture/field004.jpg",
+		"asset/texture/field005.png",
 		NULL,
 		NULL,
 		&m_Texture,
@@ -51,12 +65,12 @@ void Field::Init()
 	assert(m_Texture);
 
 
-	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout,
-		"unlitTextureVS.cso");
+	//Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "unlitTextureVS.cso"); 
+	//Renderer::CreatePixelShader(&m_PixelShader, "unlitTexturePS.cso");
+	Renderer::CreateVertexShader(&m_VertexShader, &m_VertexLayout, "pixelLightingVS.cso"); 
+	Renderer::CreatePixelShader(&m_PixelShader, "pixelLightingPS.cso");
 
-	Renderer::CreatePixelShader(&m_PixelShader, "unlitTexturePS.cso");
-
-	m_Position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	m_Position = D3DXVECTOR3(0.0f, -0.05f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 

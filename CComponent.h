@@ -1,9 +1,10 @@
 #pragma once
 
-#include <d3dx9.h>
-#include <iostream>
-#include <fstream>
-#include <string>
+//#include <d3dx9.h>
+//#include <iostream>
+//#include <fstream>
+//#include <string>
+//#include "model.h"
 
 // デフォルトサイズ
 static const float def_Size = 100.0f;
@@ -12,6 +13,9 @@ static const float def_Size = 100.0f;
 const static int NullId = 0;
 const static int CollisionId = 1;
 const static int RigidbodyId = 2;
+const static int ModelComponentId = 3;
+
+const static int UpdatePriority_Max = 3;	// コンポーネントのアップデートの優先度
 
 class GameObject;
 
@@ -23,6 +27,8 @@ protected:
 	GameObject* m_ParentGameObject;		// 親になっているゲームオブジェクト
 	std::string m_CompName = "null";	// コンポーネント名	
 	int			m_CompId = 0;			// コンポーネントの識別ID
+
+	int			m_UpdatePriority = 0;	// Updateの優先度。0から最初に実行されていき最も遅くて3(今のとこ)
 
 public:
 
@@ -36,11 +42,14 @@ public:
 	virtual ~CComponent(){}
 
 	virtual void Init() {}			// 仮想関数virtualをつけると同じCComponent.Init()を呼んでもoverrideした方の関数が呼ばれる
-	virtual void Uninit() {}		// だからvirtualをつけて、overrideした関数の方で親の関数も呼ぶようにすれば親も自分も呼ばれてOK
+	virtual void Uninit() { delete this; }		// だからvirtualをつけて、overrideした関数の方で親の関数も呼ぶようにすれば親も自分も呼ばれてOK
 	virtual void Update() {}
 	virtual void Draw() {}
 
-	virtual void Save(std::fstream* Objfile) {}
+	virtual void CopyThisComponent(CComponent* fromComponent) {}	// コピーコンストラクタのようなもの
+
+	virtual void Save(std::ofstream* Objfile, std::ofstream* ObjfileB) {}			// オーバーライドする
+	virtual void Load(std::ifstream* Objfile) {}			// オーバーライドする
 
 	std::string GetComponentName()
 	{
@@ -50,6 +59,11 @@ public:
 	int GetComponentID()
 	{
 		return m_CompId;
+	}
+
+	int GetComponentUpdatePriority()
+	{
+		return m_UpdatePriority;
 	}
 
 };

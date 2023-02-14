@@ -1,42 +1,6 @@
 #pragma once
 
 
-
-
-
-struct VERTEX_3D
-{
-    D3DXVECTOR3 Position;
-    D3DXVECTOR3 Normal;
-    D3DXVECTOR4 Diffuse;
-    D3DXVECTOR2 TexCoord;
-};
-
-
-
-struct MATERIAL
-{
-	D3DXCOLOR	Ambient;
-	D3DXCOLOR	Diffuse;
-	D3DXCOLOR	Specular;
-	D3DXCOLOR	Emission;
-	float		Shininess;
-	float		Dummy[3];
-};
-
-
-
-struct LIGHT
-{
-	BOOL		Enable;
-	BOOL		Dummy[3];
-	D3DXVECTOR4	Direction;
-	D3DXCOLOR	Diffuse;
-	D3DXCOLOR	Ambient;
-};
-
-
-
 class Renderer
 {
 private:
@@ -54,9 +18,19 @@ private:
 	static ID3D11Buffer*			m_ProjectionBuffer;
 	static ID3D11Buffer*			m_MaterialBuffer;
 	static ID3D11Buffer*			m_LightBuffer;
+	static ID3D11Buffer*			m_CameraBuffer;
+	static ID3D11Buffer*			m_ParameterBuffer;
+	static ID3D11Buffer*			m_SynthesizeColorBuffer;
 
+	// 深度バッファ
 	static ID3D11DepthStencilState* m_DepthStateEnable;
 	static ID3D11DepthStencilState* m_DepthStateDisable;
+
+	// 影用
+	static ID3D11DepthStencilView* m_ShadowDepthStencilView;
+	static ID3D11ShaderResourceView* m_ShadowDepthShaderResourceView;
+
+	static Gui* m_Gui;
 
 
 
@@ -75,6 +49,10 @@ public:
 	static void SetMaterial(MATERIAL Material);
 	static void SetLight(LIGHT Light);
 
+	static void SetCameraPosition(D3DXVECTOR3 CameraPosition);
+	static void SetParameter(D3DXVECTOR4 Parameter);
+	static void SetSynthesizeColorToSharder(D3DXVECTOR4 SynthesizeColor);
+
 	//static ID3D11Device* GetDevice( void ){ return m_Device; }
 	//static ID3D11DeviceContext* GetDeviceContext( void ){ return m_DeviceContext; }
 
@@ -82,6 +60,24 @@ public:
 
 	static void CreateVertexShader(ID3D11VertexShader** VertexShader, ID3D11InputLayout** VertexLayout, const char* FileName);
 	static void CreatePixelShader(ID3D11PixelShader** PixelShader, const char* FileName);
+
+	static void CreateVertexShader_Floor(ID3D11VertexShader** VertexShader, ID3D11InputLayout** VertexLayout, const char* FileName);
+	static void CreateVertexShader_Floor2(ID3D11VertexShader** VertexShader, ID3D11InputLayout** VertexLayout, const char* FileName);
+
+
+	static ID3D11ShaderResourceView* GetShadowDepthTexture()
+	{
+		return m_ShadowDepthShaderResourceView;
+	}
+
+	static void BeginDepth()
+	{
+		//シャドウバッファを深度バッファに設定し、内容を1で塗りつぶすしておく
+		// 引き数の3のm_ShadowDepthStencilViewはレンダリングターゲットを設定できる。
+		// 何も書かないとバックバッファがデフォルトで設定されている
+		m_DeviceContext->OMSetRenderTargets(0, NULL, m_ShadowDepthStencilView);
+		m_DeviceContext->ClearDepthStencilView(m_ShadowDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
 
 
 	static D3D_FEATURE_LEVEL GetFeatureLevel() {return m_FeatureLevel;}
@@ -98,5 +94,22 @@ public:
 
 	static ID3D11DepthStencilState* GetDepthStateEnable() {return m_DepthStateEnable;}
 	static ID3D11DepthStencilState* GetDepthStateDisable() {return m_DepthStateDisable;}
+
+
+
+	// ImGui用
+	static Gui* Gui(void) { return m_Gui; }
+	static void OMSetRenderTargetsForImGui();
+	static void ClearRenderTargetViewForImGui(const FLOAT ColorRGBA[4]);
+
+	static bool CreateDeviceD3D(HWND hWnd);
+	static void CleanupDeviceD3D();
+	static void CreateRenderTarget();
+	static void CleanupRenderTarget();
+
+	static void Gui_Setup(void* hwnd);
+	static void Gui_NewFrame();
+	static void Gui_Draw();
+	static void Gui_Shutdown();
 
 };

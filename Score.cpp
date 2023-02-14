@@ -1,9 +1,16 @@
-#include "main.h"
-#include "manager.h"
-#include "renderer.h"
-#include "Score.h"
-#include "camera.h"
-#include "scene.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "manager.h"
+//#include "renderer.h"
+//#include "Score.h"
+//#include "camera.h"
+//#include "scene.h"
+//#include <d3dx9.h>
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include "gameObject.h"
 
 
 void Score::Init()

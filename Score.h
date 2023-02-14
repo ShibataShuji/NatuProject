@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gameObject.h"
+
 
 class Score : public GameObject	// åpè≥
 {

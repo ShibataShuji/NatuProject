@@ -4,7 +4,11 @@
 // Author : 
 //
 //=============================================================================
-#include "input.h"
+
+#include "stdafx.h"
+
+//#include "input.h"
+//#include <dinput.h>
 
 
 //*****************************************************************************
@@ -299,7 +303,7 @@ HRESULT InitializeMouse(HINSTANCE hInst, HWND hWindow)
 	}
 
 	// アクセス権を得る
-	pMouse->Acquire();
+	HRESULT fe = pMouse->Acquire();
 	return result;
 }
 //---------------------------------------------------------

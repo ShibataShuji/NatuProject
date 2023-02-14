@@ -1,4 +1,7 @@
-#include "primitive.h"
+
+#include "stdafx.h"
+
+//#include "primitive.h"
 
 
 //// 点と直線の最短距離
@@ -590,4 +593,331 @@ bool isParallel(D3DXVECTOR3& a, D3DXVECTOR3& b)
 D3DXVECTOR3 cross(D3DXVECTOR3& a, D3DXVECTOR3& b)
 {
 	return D3DXVECTOR3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
+
+
+// 回転後の座標を計算。Offsetの座標を使って原点からどれだけ離れた位置にいるかが求まる
+D3DXVECTOR3 CalcAfterRoatedPos(D3DXVECTOR3 beforeOffset, D3DXVECTOR3 rotation)
+{
+	//	今の回転から回転行列を作成する
+	D3DXMATRIX rotmat;
+	D3DXMatrixRotationYawPitchRoll(&rotmat, rotation.y, rotation.x, rotation.z);
+
+	// 頂点座標を回転行列で回転させて座標を取得する
+	D3DXVECTOR3 AfterOffset;
+	D3DXVec3TransformCoord(&AfterOffset, &beforeOffset, &rotmat);
+
+	return AfterOffset;
+
+}
+
+D3DXVECTOR3 GetPositionForWorldMatrix(D3DXMATRIX matrix)
+{
+	D3DXVECTOR3 re;
+	re.x = matrix._14;
+	re.x = matrix._24;
+	re.x = matrix._34;
+
+	return re;
+}
+
+
+// sourceがdivisor(割る数)の半分の前半に位置するかどうか。trueで前半、falseで後半に位置している。
+bool FindoutBeforethehalf(const float source, const float divisor)
+{
+	float half = divisor * 0.5f;			// 割る数の半分
+	float surplus = fmod(source, divisor);	// 余りの数
+
+	// 正負で変わるので。
+	if (surplus < 0)
+	{
+		if (fabsf(surplus) < half)
+			return false;
+		else
+			return true;
+	}
+	else
+	{
+		if (surplus < half)
+			return true;
+		else
+			return false;
+	}
+
+	return true;
+}
+
+
+D3DXVECTOR3* CalcWallScratchVector(D3DXVECTOR3* pOut_vec, const D3DXVECTOR3& front, const D3DXVECTOR3& normal)
+{
+	D3DXVECTOR3 normal_n;
+	D3DXVec3Normalize(&normal_n, &normal);
+
+	float a = D3DXVec3Dot(&front, &normal_n);
+	D3DXVECTOR3 b = front - a * normal_n;
+	D3DXVec3Normalize(pOut_vec, &b);
+	return pOut_vec;
+}
+
+
+// raystart : レイの始点, raydirect : レイの方向ベクトル, spherepos : 球の中心点の座標, spherer : 球の半径
+// q1: 衝突開始点（戻り値）, q2: 衝突終了点（戻り値）
+// レイと球の衝突判定を求める
+bool calcRaySphere(D3DXVECTOR3 raystart, D3DXVECTOR3 raydirect, D3DXVECTOR3 spherepos,
+	float spherer, D3DXVECTOR3* q1, D3DXVECTOR3* q2)
+{
+	spherepos.x = spherepos.x - raystart.x;
+	spherepos.y = spherepos.y - raystart.y;
+	spherepos.z = spherepos.z - raystart.z;
+
+	float A = raydirect.x * raydirect.x + raydirect.y * raydirect.y + raydirect.z * raydirect.z;
+	float B = raydirect.x * spherepos.x + raydirect.y * spherepos.y + raydirect.z * spherepos.z;
+	float C = spherepos.x * spherepos.x + spherepos.y * spherepos.y + spherepos.z * spherepos.z - spherer * spherer;
+
+	if (A == 0.0f)
+		return false; // レイの長さが0
+
+	float s = B * B - A * C;
+	if (s < 0.0f)
+		return false; // 衝突していない
+
+	s = sqrtf(s);
+	float a1 = (B - s) / A;
+	float a2 = (B + s) / A;
+
+	if (a1 < 0.0f || a2 < 0.0f)
+		return false; // レイの反対で衝突
+
+	q1->x = raystart.x + a1 * raydirect.x;
+	q1->y = raystart.y + a1 * raydirect.y;
+	q1->z = raystart.z + a1 * raydirect.z;
+	q2->x = raystart.x + a2 * raydirect.x;
+	q2->y = raystart.y + a2 * raydirect.y;
+	q2->z = raystart.z + a2 * raydirect.z;
+
+	return true;
+}
+
+
+
+// ２次元での外積を求める
+double Cross2D(const D3DXVECTOR2& a, const D3DXVECTOR2& b) 
+{
+	return a.x * b.y - a.y * b.x;
+}
+
+// ２次元での２つの線分での交点を求める
+bool CalcIntersectionPoint(const D3DXVECTOR2& pointA,
+	const D3DXVECTOR2& pointB,
+	const D3DXVECTOR2& pointC,
+	const D3DXVECTOR2& pointD,
+	D3DXVECTOR2& pointIntersection,
+	double& dR,
+	double& dS)
+{
+	double dBunbo = (pointB.x - pointA.x)
+		* (pointD.y - pointC.y)
+		- (pointB.y - pointA.y)
+		* (pointD.x - pointC.x);
+	if (0 == dBunbo)
+	{	// 平行
+		return false;
+	}
+
+	D3DXVECTOR2 vectorAC = pointC - pointA;
+
+	dR = ((pointD.y - pointC.y) * vectorAC.x
+		- (pointD.x - pointC.x) * vectorAC.y) / dBunbo;
+	dS = ((pointB.y - pointA.y) * vectorAC.x
+		- (pointB.x - pointA.x) * vectorAC.y) / dBunbo;
+
+	pointIntersection = pointA + dR * (pointB - pointA);
+
+	return true;
+}
+
+// ２次元での２つのベクトル間での角度を求める。角度は、0～πで求まる。
+bool CalcAngle(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad)
+{
+	float VecALen = D3DXVec2Length(&vectorA);
+	float VecBLen = D3DXVec2Length(&vectorB);
+	double dLengthAxLengthB = VecALen * VecBLen;
+	if (0 == dLengthAxLengthB)
+	{
+		assert(!"ゼロベクトルエラー");
+		return false;
+	}
+
+	float VecDot = D3DXVec2Dot(&vectorA, &vectorB);
+
+	double dCosAlpha = VecDot / dLengthAxLengthB;
+	if (dCosAlpha > 1.0)
+	{
+		dCosAlpha = 1.0;
+	}
+	if (dCosAlpha < -1.0)
+	{
+		dCosAlpha = -1.0;
+	}
+	dAngle_rad = acos(dCosAlpha);
+
+	return true;
+
+
+	//float VecALenSq = D3DXVec2LengthSq(&vectorA);
+	//float VecBLenSq = D3DXVec2LengthSq(&vectorB);
+	//double dLengthAxLengthSqB = VecALenSq * VecBLenSq;
+	//if (0 == dLengthAxLengthSqB)
+	//{
+	//	assert(!"ゼロベクトルエラー");
+	//	return false;
+	//}
+
+	//float VecDot = D3DXVec2Dot(&vectorA, &vectorB);
+
+	//double dCosAlpha = pow(VecDot, 2) / dLengthAxLengthSqB;
+	//if (dCosAlpha > 1.0)
+	//{
+	//	dCosAlpha = 1.0;
+	//}
+	//if (dCosAlpha < -1.0)
+	//{
+	//	dCosAlpha = -1.0;
+	//}
+	//dAngle_rad = acos(dCosAlpha);
+
+	//return true;
+}
+
+
+// -π～π：ベクトルＢがベクトルＡに対して時計方向回りを向いているとき負の値が返ります。
+// -PI/2 ~ PI/2 が返る
+bool CalcAngle2(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad)
+{
+	if (!CalcAngle(vectorA, vectorB, dAngle_rad))
+	{
+		return false;
+	}
+
+	double dOuterProduct = Cross2D(vectorA, vectorB);
+	if (dOuterProduct < 0.0)
+	{
+		dAngle_rad = -dAngle_rad;
+	}
+
+	return true;
+}
+
+// 0～2π：ベクトルＢがベクトルＡに対して時計方向回りを向いているときπ～2πの値が返ります。
+bool CalcAngle3(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad)
+{
+	if (!CalcAngle(vectorA, vectorB, dAngle_rad))
+	{
+		return false;
+	}
+
+	double dOuterProduct = Cross2D(vectorA, vectorB);
+	if (dOuterProduct < 0.0)
+	{
+		dAngle_rad = 2 * M_PI - dAngle_rad;
+	}
+
+	return true;
+}
+
+
+// NowValueをCorrectに近づける。RoopEndValueが0以上か未満かで正の計算か負の計算か変更できる。正負をまたがるものには対応していない
+// // 正しい値。これはループを超えてないものとする// 追加していく値// 現在の値// ループのエンド
+float BringingValuesCloserFloat(const float& Correct, const float& Addition, const float& NowValue, const float& RoopEndValue)
+{
+	float re = NowValue;
+
+	// RoopEndValueが0より大きかったら正の値での計算とする
+	if (RoopEndValue >= 0.0)
+	{
+		// ループを超えてたら戻す
+		if (re > RoopEndValue)
+		{
+			int div = NowValue / RoopEndValue;
+			re -= RoopEndValue * div;
+		}
+		if (re < 0.0)
+		{
+			int div = fabsf(NowValue) / fabsf(RoopEndValue);
+			re += RoopEndValue * div;
+		}
+
+		// 右回りか左回りか近い方を求める
+		if (re - Correct > 0.0f)
+		{
+			// 右回りなのでAdditionを引いていく
+			re -= Addition;
+
+			// 0未満になっていたら加算して戻す
+			if (re < 0.0f)
+			{
+				re += RoopEndValue;
+			}
+		}
+		else
+		{
+			// 左回りなのでAdditionを引いていく
+			re += Addition;
+
+			// ループを超えてたら戻す
+			if (re > RoopEndValue)
+			{
+				re -= RoopEndValue;
+			}
+		}
+	}
+	else
+	{
+		// 負の場合の計算
+
+		// ループをより小さかったら戻す
+		if (re < RoopEndValue)
+		{
+			int div = fabsf(NowValue) / fabsf(RoopEndValue);
+			re -= RoopEndValue * div;
+		}
+		if (re > 0.0)
+		{
+			int div = fabsf(NowValue) / fabsf(RoopEndValue);
+			re += RoopEndValue * div;
+		}
+
+		// 右回りか左回りか近い方を求める
+		if (fabsf(Correct) - fabsf(re) > 0.0 && fabsf(Correct) - fabsf(re) <= fabsf(RoopEndValue))	// fabsf(RoopEndValue) * 0.5 re - Correct > 0.0f
+		{
+			// 右回りなのでAdditionを引いていく
+			re += Addition;
+
+			// 0以上になっていたら加算して戻す
+			if (re >= 0.0f)
+			{
+				re += RoopEndValue;
+			}
+		}
+		else
+		{
+			// 左回りなのでAdditionを引いていく
+			re -= Addition;
+
+			// ループを下回っていたら戻す
+			if (re < RoopEndValue)
+			{
+				re -= RoopEndValue;
+			}
+		}
+	}
+
+
+	return re;
 }

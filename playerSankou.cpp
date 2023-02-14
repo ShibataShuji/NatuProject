@@ -1,6 +1,6 @@
-//#include "main.h"
-//#include "renderer.h"
-//#include "input.h"
+
+#include "stdafx.h"
+
 //#include "model.h"
 //#include "player.h"
 //#include "scene.h"
@@ -14,7 +14,7 @@
 //void Player::Init()
 //{
 //	m_Model = new Model();
-//	m_Model->Load("asset\\model\\cylinder.obj");
+//	m_Model->Load("asset\\model\\CollisionModel\\cylinder.obj");
 //
 //	m_BulletNum = 5;
 //

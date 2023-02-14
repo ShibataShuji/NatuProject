@@ -1,6 +1,11 @@
 
-#include "main.h"
-#include "audio.h"
+#include "stdafx.h"
+
+//#include <cassert>
+//#include "main.h"
+//#include "audio.h"
+//#include "gameObject.h"
+//#include <xaudio2.h>
 
 
 

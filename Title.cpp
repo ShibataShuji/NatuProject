@@ -1,16 +1,18 @@
-#include "main.h"
-#include "manager.h"
-#include "renderer.h"
-#include "scene.h"
+#include "stdafx.h"
 
-#include "Titlelogo.h"
-//#include "Game.h"
-#include "Title.h"
-#include "input.h"
-#include "Game.h"
+//#include "scene.h"
+//#include "Title.h"
+//#include "Titlelogo.h"
+//#include <dinput.h>
+//#include "input.h"
+//#include "manager.h"
+//#include "CreateNewObjectScene.h"
+//#include "CreateNewStageScene.h"
+//#include "StageSelectScene.h"
 
 void Title::Init()
 {
+	SetSceneName("Title");
 	AddGameObject<Titlelogo>(2);
 }
 
@@ -23,8 +25,31 @@ void Title::Update()
 {
 	Scene::Update();
 
-	if (Input::GetKeyTrigger(DIK_RETURN))
+	int selected = 0;
+	selected = Renderer::Gui()->Title_SelectSeaneGUI();
+
+	if (Input::GetKeyTrigger(DIK_Q) || selected == 1)
 	{
-		Manager::SetScene<Game>();
+		Manager::SetScene<CreateNewObjectScene>();
+		return;
+	}
+
+	if (Input::GetKeyTrigger(DIK_E) || selected == 2)
+	{
+		Manager::SetScene<CreateNewStageScene>();
+		return;
+	}
+
+	if (Input::GetKeyTrigger(DIK_RETURN) || selected == 3)
+	{
+		Manager::SetScene<StageSelectScene>();
+		//Manager::SetScene<Game>();
+		return;
+	}
+
+	if (selected == 4)
+	{
+		exit(0);
+		return;
 	}
 }

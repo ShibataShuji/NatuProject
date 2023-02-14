@@ -1,7 +1,10 @@
 #pragma once
 
-#include "CComponent.h"
-//#include "gameObject.h"
+//#include "CComponent.h"
+////#include "gameObject.h"
+
+
+
 #include "Collision.h"
 
 class GameObject;
@@ -52,8 +55,8 @@ public:
 				// CComponentクラスをダウンをキャストしてCollisionクラスにする
 				Collision* collision = dynamic_cast <Collision*>(HandGameObject_Component);
 
-				collision->SetMovable(false);
-				collision->SetResponseType(RESPONSE_IGNORE);
+				collision->SetBeMoved(false);
+				//collision->SetResponseType(RESPONSE_IGNORE);
 
 			}
 		}

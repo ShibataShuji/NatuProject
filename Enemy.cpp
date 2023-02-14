@@ -1,18 +1,21 @@
-#include "main.h"
-#include "renderer.h"
-#include "model.h"
-#include "gameObject.h"
-#include "Enemy.h"
-#include "Rigidbody.h"
-#include "Collision.h"
-#include "input.h"
+
+#include "stdafx.h"
+
+//#include <dinput.h>
+//#include "main.h"
+//#include "renderer.h"
+//#include "gameObject.h"
+//#include "Enemy.h"
+//#include "Rigidbody.h"
+//#include "Collision.h"
+//#include "input.h"
 
 Model* Enemy::m_Model;
 
 void Enemy::Init()
 {
 	//AddComponent<Rigidbody>();
-	AddComponent<Collision>();
+	//AddComponent<Collision>();
 
 	m_Position = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -24,21 +27,21 @@ void Enemy::Init()
 
 	// Componentの設定
 	// <Collision>
-	Collision* p_Collision = GetComponent<Collision>();
+	//Collision* p_Collision = GetComponent<Collision>();
 	//　カプセルサイズの設定
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x, m_Position.y, m_Position.z), 100.0f, 100.0f);
 
-	p_Collision->SetMovable(false);
-	p_Collision->SetCollisionType(BOX_COLLISION);
-	p_Collision->LoadCollisionModel();
-	p_Collision->SetBoxScale(D3DXVECTOR3(2.0f, 0.5f, 2.0f));
+	//p_Collision->SetBeMoved(false);
+	//p_Collision->SetCollisionType(BOX_COLLISION);
+	//p_Collision->LoadCollisionModel();
+	//p_Collision->SetBoxScale(D3DXVECTOR3(2.0f, 0.5f, 2.0f));
 
-	//p_Collision->SetMovable(false);
+	//p_Collision->SetBeMoved(false);
 	//p_Collision->SetCollisionType(CAPSULE_COLLISION);
 	//p_Collision->LoadCollisionModel();
 	//p_Collision->SetCapsuleScale(2.0f, 4.5f);
 
-	//p_Collision->SetMovable(false);
+	//p_Collision->SetBeMoved(false);
 	//p_Collision->SetCollisionType(SPHERE_COLLISION);
 	//p_Collision->LoadCollisionModel();
 	//p_Collision->SetSphereScale(2.0f);
@@ -113,7 +116,7 @@ void Enemy::Draw()
 void Enemy::Load()
 {
 	m_Model = new Model();
-	m_Model->Load("asset\\model\\torus.obj");
+	m_Model->Load("asset\\model\\Torus.obj");
 }
 
 void Enemy::Unload()

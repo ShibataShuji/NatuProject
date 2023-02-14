@@ -1,4 +1,5 @@
-#include "gameObject.h"
+#pragma once
+
 
 class Enemy : public GameObject	// åpè≥
 {

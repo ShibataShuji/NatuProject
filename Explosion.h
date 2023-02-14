@@ -1,6 +1,7 @@
 #pragma once
 
-#include "gameObject.h"
+
+//#include "gameObject.h"
 
 class Explosion : public GameObject	// åpè≥
 {

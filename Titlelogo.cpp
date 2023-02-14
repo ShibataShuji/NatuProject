@@ -1,6 +1,16 @@
-#include "main.h"
-#include "renderer.h"
-#include "Titlelogo.h"
+
+#include "stdafx.h"
+
+
+//#include "renderer.h"
+//#include "gameObject.h"
+//#include "Titlelogo.h"
+//#include <d3dx9.h>
+//#include "main.h"
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include <cassert>
+
 
 void Titlelogo::Init()
 {
@@ -44,7 +54,7 @@ void Titlelogo::Init()
 
 	// テクスチャ読み込み
 	D3DX11CreateShaderResourceViewFromFile(Renderer::GetDevice(),
-		"asset/texture/Title_Tokage.png",
+		"asset/texture/SSE_Title.png",
 		NULL,
 		NULL,
 		&m_Texture,

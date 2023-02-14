@@ -1,61 +1,36 @@
-#include "main.h"
-#include "renderer.h"
-#include "input.h"
-#include "model.h"
-#include "player.h"
-#include "scene.h"
-#include "manager.h"
-#include "gameObject.h"
-#include "camera.h"
-#include "Bullet.h"
-#include "Enemy.h"
-#include "Shadow.h"
-#include "audio.h"
-#include "Rigidbody.h"
-#include "HandGameObject.h"
-#include "Collision.h"
-#include "Platform.h"
 
-#include "gui.h"
+#include "stdafx.h"
 
+
+//#include "main.h"
+//#include "renderer.h"
+//#include "input.h"
+////#include "model.h"
+//#include "player.h"
+//#include "scene.h"
+//#include "manager.h"
+//#include "gameObject.h"
+//#include "camera.h"
+//#include "Bullet.h"
+//#include "Enemy.h"
+//#include "Shadow.h"
+//#include "audio.h"
+//#include "Rigidbody.h"
+//#include "HandGameObject.h"
+//#include "Collision.h"
+//#include "Platform.h"
+//
 //#include "gui.h"
-
-#include "imgui.h"
+//
+////#include "gui.h"
+//
+//#include "imgui.h"
 //#include "imgui_impl_win32.h"
 //#include "imgui_impl_dx11.h"
 //
-//struct CAPSULEB
-//{
-//	float m_Radius;				// 半径
-//	D3DXVECTOR3 m_PointUpper;	// カプセルの上の球体部分の球の中心座標
-//	D3DXVECTOR3 m_PointLower;	// カプセルの下の球体部分の球の中心座標
-//
-//	// コンストラクタ
-//	CAPSULEB() : m_Radius(0.5f), m_PointUpper(0, -0.5f, 0), m_PointLower(0, 0.5f, 0) {}
-//
-//	// カプセルの中心座標を取得
-//	D3DXVECTOR3 GetCenter() const
-//	{
-//		return m_PointUpper + ((m_PointLower - m_PointUpper) * 0.5f);
-//	}
-//
-//	// カプセルの中心座標から上下2つの球の座標をセット
-//	void SetCenter(const D3DXVECTOR3& Center) {
-//		D3DXVECTOR3 CenterToPointA = ((m_PointUpper - m_PointLower) * 0.5f);
-//		D3DXVECTOR3 CenterToPointB = ((m_PointLower - m_PointUpper) * 0.5f);
-//		m_PointUpper = Center + CenterToPointA;
-//		m_PointLower = Center + CenterToPointB;
-//	}
-//	// 縦の半径を取得する
-//	float GetHeightRadius()const {
-//		D3DXVECTOR3 temp_calclength = m_PointLower - m_PointUpper;
-//		float PointLen = D3DXVec3Length(&temp_calclength) * 0.5f;
-//		PointLen += m_Radius;
-//		return PointLen;
-//	}
-//};
-
-
+//#include "manager.h"
+//#include <dinput.h>
+//#include "Savedata.h"
 
 
 class Gameobject;
@@ -71,7 +46,7 @@ void Player::Init()
 
 	Player::SetBulletNumMax();
 	m_Model = new Model();
-	m_Model->Load("asset\\model\\torus.obj");
+	m_Model->Load("asset\\model\\Torus.obj");
 
 	m_Position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -90,34 +65,34 @@ void Player::Init()
 	//GetComponent<Collision>()->SetCollisionOffset(offset);
 	//GetComponent<Collision>()->SetCapsule(Point(m_Position.x + offset.x, m_Position.y + offset.y, m_Position.z + offset.z),50.0f, 100.0f);
 	
-	//GetComponent<Collision>()->SetMovable(true);
+	//GetComponent<Collision>()->SetBeMoved(true);
 	//GetComponent<Collision>()->SetCollisionType(BOX_COLLISION);
 	//GetComponent<Collision>()->LoadCollisionModel();
 	//GetComponent<Collision>()->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 	
-	//p_Collision_0->SetMovable(true);
+	//p_Collision_0->SetBeMoved(true);
 	//p_Collision_0->SetCollisionType(BOX_COLLISION);
 	//p_Collision_0->LoadCollisionModel();
 	//p_Collision_0->SetBoxScale(D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 
-	p_Collision_0->SetMovable(true);
+	p_Collision_0->SetBeMoved(true);
 	p_Collision_0->SetCollisionType(CAPSULE_COLLISION);
 	p_Collision_0->LoadCollisionModel();
 	p_Collision_0->SetCapsuleScale(1.0f, 2.0f);	// カプセルはスフィアみたいに(1.0f,1.0f)にしたら0となってうまく処理が動かない。
 
-	//p_Collision_0->SetMovable(true);
+	//p_Collision_0->SetBeMoved(true);
 	//p_Collision_0->SetCollisionType(SPHERE_COLLISION);
 	//p_Collision_0->LoadCollisionModel();
 	//p_Collision_0->SetSphereScale(1.0f);
 
 
 
-	p_Collision_1->SetMovable(true);
+	p_Collision_1->SetBeMoved(true);
 	p_Collision_1->SetCollisionType(SPHERE_COLLISION);
 	p_Collision_1->LoadCollisionModel();
-	p_Collision_1->SetSphereScale(3.0f);
+	p_Collision_1->SetSphereScale(1.0f);
 
-	p_Collision_Ray->SetMovable(true);
+	p_Collision_Ray->SetBeMoved(true);
 	p_Collision_Ray->SetCollisionType(RAY_COLLISION);
 	p_Collision_Ray->LoadCollisionModel();
 	
@@ -160,6 +135,25 @@ void Player::Update()
 	// 親クラスのUpdateを呼んでいる。ここの中でコンポーネントのUpdateも呼ばれている。
 	GameObject::Update();
 
+	// 配置したブロックのセーブ、書き込み
+	if (Input::GetKeyTrigger(DIK_P))
+	{
+		//Manager::GetSavedata()->SaveStage();
+	}
+	if (Input::GetKeyTrigger(DIK_O))
+	{
+		//Manager::GetSavedata()->LoadStage();
+	}
+
+	if (Input::GetKeyTrigger(DIK_L))
+	{
+		Manager::GetSavedata()->SaveObject();
+	}
+	if (Input::GetKeyTrigger(DIK_K))
+	{
+		Manager::GetSavedata()->LoadObject();
+	}
+
 	// カメラのビューマトリクス取得
 	Scene* scene = Manager::GetScene();
 	Camera* p_camera = scene->GetGameObject<Camera>(0);
@@ -194,36 +188,36 @@ void Player::Update()
 	auto p_HandGameObjectComponent = GetComponentWithName<HandGameObject>("HandGameObject");
 	auto p_HandGameObject = p_HandGameObjectComponent->GetHandGameObject();
 
-	// 現在手に持ってるブロックの更新(今はとりあえずEnemyでやってる)
-	if (p_HandGameObject == nullptr)
-	{
-		// 手に持っているものが設定されてない場合
-		Scene* scene = Manager::GetScene();
-		//Enemy* enemy = scene->AddGameObject<Enemy>(1);
-		auto tempObject = scene->AddGameObject<Enemy>(1);
-		tempObject->SetPosition(SpawnPoint);
-		tempObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+	//// 現在手に持ってるブロックの更新(今はとりあえずEnemyでやってる)
+	//if (p_HandGameObject == nullptr)
+	//{
+	//	// 手に持っているものが設定されてない場合
+	//	Scene* scene = Manager::GetScene();
+	//	//Enemy* enemy = scene->AddGameObject<Enemy>(1);		// ここはEnemyじゃなくて配置ブロックにする
+	//	auto tempObject = scene->AddGameObject<Enemy>(1);
+	//	tempObject->SetPosition(SpawnPoint);
+	//	tempObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
-		p_HandGameObjectComponent->SetHandGameObject(tempObject);
+	//	p_HandGameObjectComponent->SetHandGameObject(tempObject);
 
-	}
-	else
-	{
-		// 手に持っているものが設定されてる場合
-		p_HandGameObject->SetPosition(SpawnPoint);
-		p_HandGameObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+	//}
+	//else
+	//{
+	//	// 手に持っているものが設定されてる場合
+	//	p_HandGameObject->SetPosition(SpawnPoint);
+	//	p_HandGameObject->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 
 
-		// 手に持っているものを他のものにする(現在はデバック用にぷらっとフォームにしている)
-		if (Input::GetKeyTrigger(DIK_SPACE))
-		{
-			p_HandGameObject->SetDestroy();
-			auto tempObject = scene->AddGameObject<Platform>(1);
+	//	// 手に持っているものを他のものにする(現在はデバック用にぷらっとフォームにしている)
+	//	if (Input::GetKeyTrigger(DIK_SPACE))
+	//	{
+	//		p_HandGameObject->SetDestroy();
+	//		auto tempObject = scene->AddGameObject<Platform>(1);
 
-			p_HandGameObjectComponent->SetHandGameObject(tempObject);
-		}
+	//		p_HandGameObjectComponent->SetHandGameObject(tempObject);
+	//	}
 
-	}
+	//}
 	
 
 	// モデルを移動したりするときはここに書いたりする
@@ -295,10 +289,8 @@ void Player::Update()
 			//m_temp_Velocity.y = 0.25f;
 		}
 	}
+	
 
-
-	float aaa = gui::DebugA();
-	SetScaleRate(D3DXVECTOR3(aaa, aaa, aaa));
 	//Collision* p_Collision = GetComponent<Collision>();
 	//p_Collision->SetBoxScale(D3DXVECTOR3(aaa, aaa, aaa));
 	

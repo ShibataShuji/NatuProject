@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CComponent.h"
-//#include "gameObject.h"
 
 class Rigidbody : public CComponent
 {
@@ -30,7 +28,7 @@ public:
 
 	void Uninit() override
 	{
-
+		CComponent::Uninit();
 	}
 
 	void Update() override
@@ -77,6 +75,26 @@ public:
 	float GetFriction()
 	{
 		return m_Friction;
+	}
+
+
+	void CopyThisComponent(CComponent* fromComponent)	override
+	{
+		Rigidbody* from = dynamic_cast<Rigidbody*>(fromComponent);
+
+		// m_ParentGameObject ポインターだしAddComponentの時に出来てるのでコピーしない
+
+		// 親関数からコピーするもの
+		m_CompId = from->m_CompId;
+		m_CompName = from->m_CompName;
+
+		// りぎっどボディでコピーするもの
+		m_gravity = from->m_gravity;
+		m_Mass = from->m_Mass;
+		m_Friction = from->m_Friction;
+
+		
+		m_gravity_def = from->m_gravity_def;
 	}
 
 };

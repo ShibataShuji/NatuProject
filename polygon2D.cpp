@@ -1,6 +1,14 @@
-#include "main.h"
-#include "renderer.h"
-#include "polygon2D.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "renderer.h"
+//#include "polygon2D.h"
+//#include <d3dx9.h>
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include <cassert>
+//#include "gameObject.h"
 
 
 // includeの順番大事、基本のものから順番に
@@ -8,6 +16,7 @@
 
 void Polygon2D::Init()
 {
+
 	VERTEX_3D vertex[4];
 																		// 左上
 	vertex[0].Position	 = D3DXVECTOR3(0.0f, 0.0f, 0.0f);				// 座標
@@ -81,7 +90,16 @@ void Polygon2D::Uninit()
 
 void Polygon2D::Update()
 {
+	// フェードインの場合
+	if (m_FadeState == 1)
+	{
 
+	}
+	// フェードアウトの場合
+	if (m_FadeState == 2)
+	{
+		
+	}
 
 }
 

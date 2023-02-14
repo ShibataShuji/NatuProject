@@ -1,6 +1,5 @@
 #pragma once
 
-#include "scene.h"
 
 class Result : public Scene
 {

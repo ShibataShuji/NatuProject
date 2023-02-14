@@ -1,8 +1,8 @@
 #pragma once
 
 // 実装されているコンポーネント
-#include "Rigidbody.h"
-#include "Collision.h"
+//#include "Rigidbody.h"
+//#include "Collision.h"
 
 
 //

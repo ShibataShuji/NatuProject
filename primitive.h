@@ -333,6 +333,43 @@ struct OBB;
 struct RAY;
 class Collision;
 
+struct Int2;
+struct Float2;
+
+// int型をx,yで2つもつ
+struct Int2
+{
+	int x;
+	int	y;
+
+	Int2() : x(0), y(0) {}
+	Int2(int ax, int ay){ x = ax; y = ay; }
+
+	// 比較の追加
+	bool operator==(const Int2& int2) const
+	{
+		return (x == int2.x && y == int2.y);
+	}
+
+
+};
+
+struct Float2
+{
+	float x;
+	float y;
+
+	Float2() : x(0.0f), y(0.0f) {}
+	Float2(float ax, float ay) { x = ax; y = ay; }
+
+	// 比較の追加
+	bool operator==(const Float2& float2) const
+	{
+		return (x == float2.x && y == float2.y);
+	}
+};
+
+
 struct SEGMENT
 {
 	D3DXVECTOR3 m_pos1;		// 線分の始点
@@ -1101,10 +1138,42 @@ void clamp01(float& v);
 float calcLineLineDist(SEGMENT& l1, SEGMENT& l2, D3DXVECTOR3& p1, D3DXVECTOR3& p2, float& t1, float& t2);
 bool isParallel(D3DXVECTOR3& a, D3DXVECTOR3& b);
 D3DXVECTOR3 cross(D3DXVECTOR3& a, D3DXVECTOR3& b);
+D3DXVECTOR3 CalcAfterRoatedPos(D3DXVECTOR3 beforeOffset, D3DXVECTOR3 rotation);
+D3DXVECTOR3 GetPositionForWorldMatrix(D3DXMATRIX matrix);
+
+// sourceがdivisor(割る数)の半分の前半に位置するかどうか。trueで前半、falseで後半に位置している。
+bool FindoutBeforethehalf(const float source, const float divisor = 1.0f);
+
+// 壁ずりベクトル : out : 正規化壁ずりベクトル（戻り値） : front : 進行ベクトル : normal: 衝突点での法線ベクトル
+D3DXVECTOR3* CalcWallScratchVector(D3DXVECTOR3* pOut_vec, const D3DXVECTOR3& front, const D3DXVECTOR3& normal);
+
+bool calcRaySphere(D3DXVECTOR3 raystart, D3DXVECTOR3 raydirect, D3DXVECTOR3 spherepos,
+	float spherer, D3DXVECTOR3* q1, D3DXVECTOR3* q2);
 
 
+double Cross2D(const D3DXVECTOR2& a, const D3DXVECTOR2& b);
 
+bool CalcIntersectionPoint(const D3DXVECTOR2& pointA,
+	const D3DXVECTOR2& pointB,
+	const D3DXVECTOR2& pointC,
+	const D3DXVECTOR2& pointD,
+	D3DXVECTOR2& pointIntersection,
+	double& dR,
+	double& dS);
 
+bool CalcAngle(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad);
+
+bool CalcAngle2(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad);
+
+bool CalcAngle3(const D3DXVECTOR2& vectorA,
+	const D3DXVECTOR2& vectorB,
+	double& dAngle_rad);
+
+float BringingValuesCloserFloat(const float& Correct, const float& Addition, const float& NowValue, const float& RoopEndValue);
 
 
 #endif

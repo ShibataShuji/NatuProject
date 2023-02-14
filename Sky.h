@@ -1,5 +1,4 @@
 #pragma once
-#include "gameObject.h"
 
 class Sky : public GameObject	// åpè≥
 {

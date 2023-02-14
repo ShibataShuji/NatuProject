@@ -1,21 +1,29 @@
-#include "main.h"
-#include "renderer.h"
-#include "input.h"
-#include "model.h"
-#include "camera.h"
-//#include "player.h"
-#include "scene.h"
-#include "manager.h"
-#include "gameObject.h"
-#include "Bullet.h"
-#include "Sky.h"
+
+#include "stdafx.h"
+
+//#include "main.h"
+//#include "renderer.h"
+//#include "input.h"
+////#include "model.h"
+//#include "camera.h"
+////#include "player.h"
+//#include "scene.h"
+//#include "manager.h"
+//#include "gameObject.h"
+//#include "Bullet.h"
+//#include "Sky.h"
+//#include <d3dx9.h>
+//#include <D3D11.h>
+//#include <D3DX11.h>
+//#include <cassert>
+//#include "model.h"
 
 class Gameobject;
 
 void Sky::Init()
 {
 	m_Model = new Model();
-	m_Model->Load("asset\\model\\Sky01.obj");
+	m_Model->Load("asset\\model\\CollisionModel\\Sky01.obj");
 
 	m_Position = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	m_Rotation = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -50,6 +58,7 @@ void Sky::Update()
 
 	D3DXVECTOR3 cameraPosition = camera->GetPosition();
 	m_Position = cameraPosition;
+	m_Rotation.y += 0.0003;
 }
 
 

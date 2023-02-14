@@ -1,1 +1,2 @@
-#include "CGameObject.h"
+
+#include "stdafx.h"

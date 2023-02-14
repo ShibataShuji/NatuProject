@@ -1,6 +1,13 @@
 #pragma once
 
-#include "scene.h"
+
+
+#include "Savedata.h"
+
+
+// string型->char[64]へ変換
+void StringToChar64(std::string str, char* ch);
+void CharToString(char* ch, std::string* str);
 
 class Manager
 {
@@ -13,6 +20,7 @@ private:
 	// それでもだめなら気を付けながらインクルードを使う
 
 	static class Scene* m_Scene;
+	static class Savedata* m_Savedata;
 
 public:
 	static void Init();
@@ -22,17 +30,54 @@ public:
 
 	static class Scene* GetScene() { return m_Scene; }
 
+	static class Savedata* GetSavedata() { return m_Savedata; }
+
 	template <typename T> 
 	static void SetScene() 
 	{
-		if (m_Scene)
+		//m_Scene->SetSecenChange(true);
+
+		if (m_Scene != nullptr)
 		{
-			m_Scene->Uninit();
-			delete m_Scene;
+			if (m_Scene)
+			{
+
+				m_Scene->Uninit();
+				delete m_Scene;
+
+			}
 		}
 
 		m_Scene = new T();
 		m_Scene->Init();
+		m_Scene->SetSecenChange(true);
+	}
+
+	//static void SetGameSceneWithStageName()
+	//{
+	//	if (m_Scene)
+	//	{
+	//		m_Scene->Uninit();
+	//		delete m_Scene;
+	//	}
+
+	//	// 一度ダウンキャストしてInitをしてからm_Sceneに入れる
+		//Game* game = dynamic_cast<Game*>(new Game);
+		//game->Init();
+
+	//	m_Scene = game;
+	//}
+
+	static void InitSavedata()
+	{
+		if (m_Savedata)
+		{
+			delete m_Savedata;
+		}
+
+		m_Savedata = new Savedata();
+		m_Savedata->Init();
+		//m_Scene->Init();
 	}
 
 	// overrideを継承先でつけると、スペルミスを防ぐことができる。実行結果は全く変わらないのでつけなくてもいいけどつけてね。
