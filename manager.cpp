@@ -109,7 +109,7 @@ void Manager::Draw()
 	}
 	else if (camera != nullptr)
 	{
-		At = camera->GetPosition();
+		At = camera->GetCameraForcusPoint();
 
 		Eye = At + SunPosition;
 	}

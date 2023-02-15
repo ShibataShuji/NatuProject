@@ -428,3 +428,12 @@ void Camera::FreeMovement()
 	m_Velocity.z -= m_Velocity.z * 0.1;
 
 }
+
+// ƒJƒƒ‰‚Ì’–Ú“_‚ğo‚·
+D3DXVECTOR3 Camera::GetCameraForcusPoint(const float& length)
+{
+	D3DXVECTOR3 pos = m_Position;
+	D3DXVECTOR3 forward = GetCameraForward();
+	pos += forward * length;
+	return pos;
+}

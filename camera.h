@@ -71,6 +71,9 @@ public:
 
 	void FreeMovement();
 
+	D3DXVECTOR3 GetCameraForcusPoint(const float& length = 20.0f);
+
+
 
 };
 

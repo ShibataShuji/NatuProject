@@ -298,6 +298,11 @@ void MeshFieldObject::Draw()
 
 	//テクスチャ設定
 	Renderer::GetDeviceContext()->PSSetShaderResources(0, 1, &m_Texture);
+
+	// シャドウマップのセット
+	ID3D11ShaderResourceView* shadowDepthTexture = Renderer::GetShadowDepthTexture();
+	Renderer::GetDeviceContext()->PSSetShaderResources(1, 1, &shadowDepthTexture);
+
 	// ノーマルマップ用テクスチャ設定,0番は↑で使っているから2番に設定
 	Renderer::GetDeviceContext()->PSSetShaderResources(2, 1, &m_TextureNormal);
 	Renderer::GetDeviceContext()->PSSetShaderResources(3, 1, &m_TextureOver);
