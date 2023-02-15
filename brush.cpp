@@ -81,7 +81,12 @@ void Brush::Update()
 	BurushKyeUpdate();
 
 	bool IsWindowHovered = false;
-	IsWindowHovered = ImGui::IsWindowHovered(0);
+	IsWindowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+	bool IsAnyItemActive = ImGui::IsAnyItemActive();
+
+	bool GuiHovered = false;
+	if (IsWindowHovered || IsAnyItemActive)
+		GuiHovered = true;
 
 
 
@@ -114,7 +119,7 @@ void Brush::Update()
 	}
 	// メッシュフィールドをブラシでいじる！
 	{
-		if (!IsWindowHovered)
+		if (!GuiHovered)
 		{
 			if (m_MouseActiveState == E_MouseActiveState::ActiveLeft)
 			{

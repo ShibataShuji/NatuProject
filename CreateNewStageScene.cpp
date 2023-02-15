@@ -69,8 +69,18 @@ void CreateNewStageScene::Update()
 	Scene* scene = Manager::GetScene();
 	Savedata* save = Manager::GetSavedata();
 
+	static int aaa = 0;
 
+	if (Input::GetKeyTrigger(DIK_H))
+		aaa++;
 
+	bool IsWindowHovered = false;
+	IsWindowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+	bool IsAnyItemActive = ImGui::IsAnyItemActive();
+
+	bool GuiHovered = false;
+	if (IsWindowHovered || IsAnyItemActive)
+		GuiHovered = true;
 
 	bool backtitle = false;
 
@@ -160,7 +170,7 @@ void CreateNewStageScene::Update()
 	{
 		// マウスクリックでオブジェクトを選択する
 		{
-			if (Input::IsMouseLeftTriggered())
+			if (Input::IsMouseLeftTriggered() && !GuiHovered)
 			{
 				D3DXVECTOR3 q1, q2;
 				GameObject* clickobject = GetCollisionRaySimpleBoundingBox3D(&q1, &q2);
