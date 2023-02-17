@@ -1,28 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include "game.h"
-//#include "camera.h"
-//#include "scene.h"
-//#include <dinput.h>
-//#include "main.h"
-//#include "input.h"
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include "audio.h"
-//#include "Bullet.h"
-//#include "Platform.h"
-//#include "Enemy.h"
-//#include "Savedata.h"
-//#include "field.h"
-//#include "Sky.h"
-//#include "OriginalBlock.h"
-//#include "Score.h"
-//#include <d3dx9.h>
 
 Audio* bgm;
 
@@ -37,25 +13,12 @@ void Game::Init()
 
 	m_OpenGameSettingGUI = false;
 
-	Bullet::Load();
-
-	Enemy::Load();
-	Platform::Load();
-
 	// 現在読み込んでいるステージデータの通りにブロックを配置する
 	savedata->AddObjectForLoadedStage();
 	
-
-	// 順番大事～ かめら、３ｄおぶじぇ、２ｄおぶじぇ　->引き数で数字渡すことにより解決済み
-	// 順番大事～ かめら、３ｄおぶじぇ、２ｄおぶじぇe
 	m_Camera = AddGameObject<Camera>(0);
-	//m_Camera->SetFollowObject(player);
-	//m_Camera->SetCameraMode(5);			// 視点を右クリ長押しフリーモードに
 
-	//AddGameObject<Field>(1);
 	AddGameObject<Sky>(1);
-
-	//AddGameObject<Player>(1);
 
 	// "Player"のオブジェクトを探して配置する
 	GameObject* player = savedata->AddObjectForLoadedObjectWithName("Player");
@@ -68,11 +31,8 @@ void Game::Init()
 		D3DXVECTOR3 StartPos = playerstart->GetPosition();
 		StartPos.y += 1.2f;
 		player->SetPosition(StartPos);
+		player->SetVelocity(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 	}
-
-	//std::string BlockName = "Block";
-	//savedata->AddObjectForLoadedObjectWithName(BlockName);
-
 
 	for (int i = 0; i < 20; i++)
 	{
@@ -93,25 +53,6 @@ void Game::Init()
 
 	}
 
-	//// 古い方のメッシュフィールド
-	//MeshField* meshfield = AddGameObject<MeshField>(1);
-	//meshfield->SetAreaBlock(Int2(0, 0));
-	//meshfield = AddGameObject<MeshField>(1);
-	//meshfield->SetAreaBlock(Int2(0, 1));
-	//AddGameObject<Brush>(1);
-
-	/*AddMeshFieldObject(Int2(-1, 0));
-	AddMeshFieldObject(Int2(0, 0));
-	AddMeshFieldObject(Int2(-1, -1));
-	AddMeshFieldObject(Int2(-1, -1));*/
-
-	//AddGameObject<Brush>(1);
-
-	AddGameObject<Score>(2);
-	// 2Dの後には3Dは表示できない；；
-
-	//AddGameObject<Polygon2D>(2);
-
 
 	bgm = AddGameObject<Audio>(2);
 	bgm->Load("asset\\audio\\bgm.wav");
@@ -129,10 +70,6 @@ void Game::Init()
 void Game::Uninit()
 {
 	Scene::Uninit();		// 継承元のクラスのメソッド呼び出し。ここでゲームオブジェクトのUninit
-
-	Bullet::Unload();
-	Enemy::Unload();
-	Platform::Unload();
 }
 
 void Game::Update()
@@ -192,48 +129,23 @@ void Game::Update()
 	// fps見るよう
 	//Renderer::Gui()->testGui();
 
+	// BGM
+		/*if (Input::GetKeyPress('E'))
+		{
+			bgm->Stop();
+		}*/
+		//if (Input::GetKeyPress('E'))
+		//{
+		//	bgm->SetFadeout(120);
+		//}
 
-	/*if (Input::GetKeyPress('E'))
-	{
-		bgm->Stop();
-	}*/
+		//if (Input::GetKeyPress('Q'))
+		//{
+		//	bgm->SetFadein(120);
+		//}
 
-	if (Input::GetKeyPress('E'))
-	{
-		bgm->SetFadeout(120);
-	}
-
-	if (Input::GetKeyPress('Q'))
-	{
-		bgm->SetFadein(120);
-	}
-
-	if (Input::GetKeyPress('R'))
-	{
-		bgm->SetVolume(2.0f);
-	}
-
-	// ここでシーンの繊維を書く
-	// そうするとシーンのアップデートが終わってから
-	// シーンの遷移が行われる
-
-	// プレイヤーがいなくなった～
-
-
-	//// 敵キャラがいなくなったら～
-	//std::vector<Enemy*> enemys = scene->GetGameObjects<Enemy>(1);
-	//int AliveEnemyNum = 0;
-	//for (auto& i : enemys)
-	//{
-	//	AliveEnemyNum++;
-	//}
-	//if (AliveEnemyNum == 0)
-	//{
-	//	Manager::SetScene<Result>();
-	//}
-
-	//if (Input::GetKeyTrigger(VK_RETURN))
-	//{
-	//	Manager::SetScene<Result>();
-	//}
+		//if (Input::GetKeyPress('R'))
+		//{
+		//	bgm->SetVolume(2.0f);
+		//}
 }

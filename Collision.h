@@ -1,11 +1,5 @@
 #pragma once
 
-//#include <cstddef>
-
-
-//// デフォルトのコリジョンのモデルのサイズ
-//static const float def_Size = 100.0f;
-
 // コリジョンタイプの値の設定
 static const int	BOX_COLLISION = 0;
 static const int	CAPSULE_COLLISION = 1;
@@ -399,96 +393,6 @@ public:
 			}
 		}
 	}
-
-
-	//// Offsetの設定
-	//void SetCollisionOffset(Point offset)
-	//{
-	//	m_CollisionOffset = offset;
-	//}
-
-
-	//// カプセルのサイズ等の設定
-	//void SetCapsule(Point centerpos, float radius, float height)
-	//{
-	//	m_Capsule.SetCapsule(Point(centerpos.x, centerpos.y, centerpos.z), radius, height);
-	//}
-
-
-
-	//// カプセルとボックスの当たり判定
-	//void CapsuleOBB(Collision* capsule, Collision* obb)
-	//{
-	//	// cp_Capsule にはカプセル側の最接近点の座標が取得できる(Closest point 最接近点)
-	//	int flag;
-	//	D3DXVECTOR3 cp_Capsule;
-	//	cp_Capsule = ClosestPtCapsuleOBB(capsule->m_capsule, obb->m_obb, flag);
-
-	//	// 今のままだとカプセル側の最接近点がカプセルの外周なので、中心のラインで計算するように戻す(y座標は維持or上下の球体の場合戻す)
-	//	D3DXVECTOR3 cp_CapsuleCenterLine = cp_Capsule;
-	//	cp_CapsuleCenterLine.x = capsule->m_capsule.GetCenterPos().x;
-	//	cp_CapsuleCenterLine.z = capsule->m_capsule.GetCenterPos().z;
-	//	if (cp_Capsule.y > capsule->m_capsule.GetCenterPos().y)
-	//		cp_CapsuleCenterLine.y = capsule->m_capsule.GetUpperSpherePos().y;
-	//	if (cp_Capsule.y < capsule->m_capsule.GetCenterPos().y)
-	//		cp_CapsuleCenterLine.y = capsule->m_capsule.GetLowerSpherePos().y;
-
-	//	// cp_OBB にはOBB側の最接近点の座標が取得できる
-	//	D3DXVECTOR3 cp_OBB;
-	//	ClosestPtPointOBB(cp_CapsuleCenterLine, obb->m_obb, cp_OBB);
-
-	//	// distance カプセルからみたOBBへの最短距離(ベクトル)
-	//	D3DXVECTOR3 distance;
-	//	distance = cp_OBB - cp_CapsuleCenterLine;
-
-	//	// length カプセルからOBBへの最短距離
-	//	float length;
-	//	length = D3DXVec3Length(&distance);
-
-	//	// overlaplength カプセルとOBBの重なっている距離
-	//	float overlaplength;
-	//	overlaplength = capsule->m_capsule.m_Radius - length;
-	//	// 方向ベクトルの準備
-	//	D3DXVECTOR3 normal;
-	//	D3DXVec3Normalize(&normal, &distance);
-
-	//	// 衝突してたらの処理
-	//	if (length <= capsule->m_capsule.m_Radius)
-	//	{
-	//		D3DXVECTOR3 cap_Pos = capsule->m_ParentGameObject->GetPosition();		// ゲット
-	//		D3DXVECTOR3 cap_Vel = capsule->m_ParentGameObject->GetVelocity();		// ゲット
-	//		D3DXVECTOR3 obb_Pos = obb->m_ParentGameObject->GetPosition();			// ゲット
-	//		D3DXVECTOR3 obb_Vel = obb->m_ParentGameObject->GetVelocity();			// ゲット
-
-	//		// 重なっていたら戻す処理
-	//		D3DXVECTOR3 backVector;
-	//		backVector = normal * overlaplength * 0.8;	// 方向ベクトルのむきに重なっている距離分戻す
-
-	//		OverlapToBackPosition(capsule->m_ParentGameObject, obb->m_ParentGameObject, backVector);		// この中でセットしている
-
-
-	//		// カプセル側接地判定処理。flag == 1で上にいる。-1で下にいる。0で横
-	//		//if (flag == 1 && cap_Vel.y < 0.0f && cp_Capsule.y < OnTheGroundHeight_cap)
-	//		if (flag == 1 && cap_Vel.y < 0.0f && -normal.y > capsule->m_OnTheGroundCheckNormal)
-	//		{
-	//			capsule->m_ParentGameObject->SetOnTheGround(true);
-	//			capsule->m_ParentGameObject->SetTempOnTheGround(true);
-	//			capsule->m_ParentGameObject->SetVelocity_y(0.0f);
-	//		}
-
-	//		// OBB側接地判定処理。
-	//		if (flag == -1 && obb_Vel.y < 0.0f && normal.y > obb->m_OnTheGroundCheckNormal)
-	//		{
-	//			obb->m_ParentGameObject->SetOnTheGround(true);
-	//			obb->m_ParentGameObject->SetTempOnTheGround(true);
-	//			obb->m_ParentGameObject->SetVelocity_y(0.0f);
-	//		}
-
-
-
-
-	//	}
-	//}
 
 	// カプセルとボックスの当たり判定
 	void CapsuleOBB(Collision* capsule, Collision* obb, int response)
@@ -1228,56 +1132,9 @@ public:
 	}
 
 
-	void Save(std::ofstream* Objfile, std::ofstream* ObjfileB) override
-	{
-		// ここではこのコンポーネントの設定を書き込む
-		StructCollisionData scd;
-		scd = RealtoSCD();
+	void Save(std::ofstream* Objfile, std::ofstream* ObjfileB) override;
 
-		Objfile->write((char*)&scd, sizeof(scd));
-		ObjfileB->write((char*)&scd, sizeof(scd));
-
-		// 自分がどのオブジェクトタイプかを書き込む
-		Objfile->write((char*)&m_ObjectType, sizeof(m_ObjectType));
-		ObjfileB->write((char*)&m_ObjectType, sizeof(m_ObjectType));
-
-		// リストのサイズを書き込みその分書き込む
-		int listsize = m_ResponseObjectList.size();
-		Objfile->write((char*)&listsize, sizeof(listsize));
-		ObjfileB->write((char*)&listsize, sizeof(listsize));
-		for (int n = 0; n < listsize; n++)
-		{
-			int response = m_ResponseObjectList[n];
-			Objfile->write((char*)&response, sizeof(response));
-			ObjfileB->write((char*)&response, sizeof(response));
-		}
-
-	}
-
-	void Load(std::ifstream* Objfile) override
-	{
-		// ここではこのコンポーネントの設定を書き込む
-		StructCollisionData scd;
-
-		Objfile->read((char*)&scd, sizeof(scd));
-
-		SCDtoReal(scd);		// 読み込んだものを反映させる
-
-		// 自分がどのオブジェクトタイプかを読み込む
-		int objtype = 0;
-		Objfile->read((char*)&objtype, sizeof(objtype));
-		m_ObjectType = objtype;
-
-		// リストのサイズを読み込みその分読み込む。pushbackでやる
-		int listsize = 0;
-		Objfile->read((char*)&listsize, sizeof(listsize));
-		for (int n = 0; n < listsize; n++)
-		{
-			int response = 0;
-			Objfile->read((char*)&response, sizeof(response));
-			m_ResponseObjectList.push_back(response);
-		}
-	}
+	void Load(std::ifstream* Objfile) override;
 
 	void CopyThisComponent(CComponent* fromComponent)	override
 	{

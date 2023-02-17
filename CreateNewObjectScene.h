@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "scene.h"
-
 class Camera;
 class OriginalBlock;
 

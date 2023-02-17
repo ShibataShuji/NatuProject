@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -6,15 +5,6 @@
 #include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
 
-//#include "main.h"
-//#include "renderer.h"
-//#include "model.h"
-//#include <D3Dcommon.h>
-//#include <DXGIFormat.h>
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include <d3dx9.h>
 
 
 

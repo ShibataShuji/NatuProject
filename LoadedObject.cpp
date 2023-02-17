@@ -4,16 +4,6 @@
 
 // ファイルから読み込んだものをそのまま使うのではなくこれに保存して使う。
 
-//#include "main.h"
-//#include "renderer.h"
-//#include "model.h"
-//#include "gameObject.h"
-//#include "LoadedObject.h"
-//#include "ComponentListManager.h"
-//#include "input.h"
-//#include "Collision.h"
-//#include "Rigidbody.h"
-
 
 
 Model* LoadedObject::m_Model;

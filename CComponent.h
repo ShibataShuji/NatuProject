@@ -1,10 +1,5 @@
 #pragma once
 
-//#include <d3dx9.h>
-//#include <iostream>
-//#include <fstream>
-//#include <string>
-//#include "model.h"
 
 // デフォルトサイズ
 static const float def_Size = 100.0f;

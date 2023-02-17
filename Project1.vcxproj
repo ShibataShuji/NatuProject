@@ -179,15 +179,10 @@
   <ItemGroup>
     <ClCompile Include="audio.cpp" />
     <ClCompile Include="brush.cpp" />
-    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="camera.cpp" />
-    <ClCompile Include="CGameObject.cpp" />
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="ComponentListManager.cpp" />
     <ClCompile Include="CreateNewObjectScene.cpp" />
     <ClCompile Include="CreateNewStageScene.cpp" />
-    <ClCompile Include="Enemy.cpp" />
-    <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="field.cpp" />
     <ClCompile Include="FPSCamera.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -206,22 +201,16 @@
     <ClCompile Include="LoadedObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="manager.cpp" />
-    <ClCompile Include="MeshField.cpp" />
     <ClCompile Include="MeshFieldObject.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="OriginalBlock.cpp" />
-    <ClCompile Include="Platform.cpp" />
-    <ClCompile Include="player.cpp" />
-    <ClCompile Include="playerSankou.cpp" />
     <ClCompile Include="polygon2D.cpp" />
     <ClCompile Include="primitive.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="Result.cpp" />
-    <ClCompile Include="Resultlogo.cpp" />
     <ClCompile Include="Savedata.cpp" />
     <ClCompile Include="scene.cpp" />
-    <ClCompile Include="Score.cpp" />
     <ClCompile Include="Shadow.cpp" />
     <ClCompile Include="SimpleBoundingBox2D.cpp" />
     <ClCompile Include="SimpleBoundingBox3D.cpp" />
@@ -235,30 +224,22 @@
     </ClCompile>
     <ClCompile Include="testPolygon.cpp" />
     <ClCompile Include="Title.cpp" />
-    <ClCompile Include="Titlelogo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="audio.h" />
     <ClInclude Include="brush.h" />
-    <ClInclude Include="Bullet.h" />
     <ClInclude Include="Burush_Support.h" />
     <ClInclude Include="camera.h" />
-    <ClInclude Include="CGameObject.h" />
     <ClInclude Include="CComponent.h" />
     <ClInclude Include="Collision.h" />
-    <ClInclude Include="ComponentListManager.h" />
     <ClInclude Include="CreateNewObjectScene.h" />
     <ClInclude Include="CreateNewStageScene.h" />
-    <ClInclude Include="Enemy.h" />
-    <ClInclude Include="Explosion.h" />
     <ClInclude Include="field.h" />
     <ClInclude Include="FPSCamera.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameEngineData.h" />
     <ClInclude Include="gameObject.h" />
-    <ClInclude Include="GameObjectClassList.h" />
     <ClInclude Include="gui.h" />
-    <ClInclude Include="HandGameObject.h" />
     <ClInclude Include="ImageDisplayFull.h" />
     <ClInclude Include="ImGui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="ImGui\backends\imgui_impl_win32.h" />
@@ -272,33 +253,26 @@
     <ClInclude Include="LoadedObject.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="manager.h" />
-    <ClInclude Include="MeshField.h" />
     <ClInclude Include="MeshFieldObject.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="OriginalBlock.h" />
-    <ClInclude Include="Platform.h" />
-    <ClInclude Include="player.h" />
     <ClInclude Include="polygon2D.h" />
     <ClInclude Include="primitive.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="renderer_Support.h" />
     <ClInclude Include="Result.h" />
-    <ClInclude Include="Resultlogo.h" />
     <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="Savedata.h" />
     <ClInclude Include="scene.h" />
-    <ClInclude Include="Score.h" />
     <ClInclude Include="Shadow.h" />
     <ClInclude Include="SimpleBoundingBox2D.h" />
     <ClInclude Include="SimpleBoundingBox3D.h" />
     <ClInclude Include="Sky.h" />
     <ClInclude Include="StageSelectScene.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="testhghdfvs.h" />
     <ClInclude Include="testpolygon.h" />
     <ClInclude Include="Title.h" />
-    <ClInclude Include="Titlelogo.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Sharder\BlinnPhongLightingPS.hlsl">

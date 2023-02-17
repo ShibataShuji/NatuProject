@@ -1,22 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "renderer.h"
-//#include "input.h"
-////#include "model.h"
-//#include "camera.h"
-////#include "player.h"
-//#include "scene.h"
-//#include "manager.h"
-//#include "gameObject.h"
-//#include "Bullet.h"
-//#include "Sky.h"
-//#include <d3dx9.h>
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include "model.h"
 
 class Gameobject;
 

@@ -1,14 +1,5 @@
 #include "stdafx.h"
 
-//#include "StageSelectScene.h"
-//#include "scene.h"
-//#include "Savedata.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include <string>
-//#include "manager.h"
-//#include "Title.h"
-//#include "Game.h"
 
 void StageSelectScene::Init()
 {

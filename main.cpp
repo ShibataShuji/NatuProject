@@ -2,30 +2,6 @@
 
 #include "stdafx.h"
 
-//#define  NOMINMAX
-//#include <tchar.h>
-//#include <stdio.h>
-//#include <windows.h>
-//#include <assert.h>
-//#include <string>
-//
-//#include <d3d11.h>
-//#include <d3dx9.h>
-//#include <d3dx11.h>
-//
-//#include "imgui.h"
-//#include "imgui_impl_win32.h"
-//#include "imgui_impl_dx11.h"
-//
-//
-//
-//#include "main.h"
-//
-//#include "input.h"
-//#include <dinput.h>
-//#include "renderer.h"
-//#include "manager.h"
-
 
 const char* CLASS_NAME = "AppClass";
 const char* WINDOW_NAME = "DX11ÉQÅ[ÉÄ";

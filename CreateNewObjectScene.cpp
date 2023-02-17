@@ -1,15 +1,6 @@
 
 #include "stdafx.h"
 
-//#include "CreateNewObjectScene.h"
-//#include "audio.h"
-//#include "manager.cpp"
-//#include "renderer.h"
-//#include <dinput.h>
-//#include "OriginalBlock.h"
-
-
-
 Audio* CreateNewObjectScene_bgm;
 
 void CreateNewObjectScene::Init()
@@ -109,17 +100,4 @@ void CreateNewObjectScene::Update()
 		scene->SetCollisionVisibility_GameObjectList(visility);		// 配置済みのものに。
 		save->SetCollisionVisibility_LoadedObjectList(visility);	// 読み込まれてるものに。
 	}
-
-
-
-	//// カメラの操作
-	//if (Input::GetKeyPress(DIK_Q))
-	//{
-	//	m_camera->AddRadian(-0.05f);
-	//}
-	//if (Input::GetKeyPress(DIK_E))
-	//{
-	//	m_camera->AddRadian(0.05f);
-	//}
-
 }

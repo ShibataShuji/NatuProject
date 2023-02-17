@@ -1,17 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "renderer.h"
-//#include "polygon2D.h"
-//#include <d3dx9.h>
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include "gameObject.h"
-
-
-// include‚Ì‡”Ô‘å–AŠî–{‚Ì‚à‚Ì‚©‚ç‡”Ô‚É
 
 
 void Polygon2D::Init()

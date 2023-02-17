@@ -1,18 +1,5 @@
 #pragma once
 
-// gui.cpp
-//#include "imgui.h"
-//#include "imgui_impl_dx11.h"
-//#include "imgui_impl_win32.h"
-
-//#include "imgui_user.inl"
-//#include "misc/freetype/imgui_freetype.h"
-//#include "imstb_truetype.h"
-//#include "imgui.h"
-//#include "imgui_impl_win32.h"
-//#include "imgui_internal.h"
-//#include "imstb_textedit.h"
-
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <d3dx9.h>
@@ -78,9 +65,7 @@
 #include "CreateNewStageScene.h"
 #include "ImageDisplayFull.h"
 #include "Title.h"
-#include "Titlelogo.h"
 #include "Result.h"
-#include "Resultlogo.h"
 #include "StageSelectScene.h"
 
 
@@ -93,26 +78,17 @@
 // 1
 #include "field.h"
 #include "Sky.h"
-#include "Bullet.h"
 #include "OriginalBlock.h"
-#include "Enemy.h"
-#include "Platform.h"
-#include "player.h"
-#include "HandGameObject.h"
 #include "LoadedObject.h"
 #include "Shadow.h"
 
-#include "MeshField.h"
 #include "brush.h"
 
 // 2
-#include "Explosion.h"
-#include "Score.h"
 #include "polygon2D.h"
 
 
 #include "CComponent.h"
-#include "ComponentListManager.h"
 #include "Collision.h"
 #include "Rigidbody.h"
 #include "ModelComponent.h"

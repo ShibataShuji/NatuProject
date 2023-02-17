@@ -1,16 +1,4 @@
-
 #include "stdafx.h"
-
-
-
-//#include "CComponent.h"
-//#include "Collision.h"
-//#include "Rigidbody.h"
-//#include "gameObject.h"
-//
-//#include "ModelComponent.h"
-
-
 
 void GameObject::Load()
 {
@@ -59,9 +47,6 @@ void GameObject::Update()
 		/*------->>>>>> ComponentUpdate()ŠÖ”‚É‚Ü‚Æ‚ß‚½*/
 
 
-		// Žq‹Ÿ‚Ì•K—v«‚ª‚í‚©‚ç‚È‚¢GG
-		/*for (auto c : m_Child)
-			c->Update();*/
 }
 
 

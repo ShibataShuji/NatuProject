@@ -1,12 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "renderer.h"
-//#include "testPolygon.h"
-
-
-
 
 
 void testPolygon::Init()

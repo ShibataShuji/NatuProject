@@ -1,13 +1,6 @@
 #include "stdafx.h"
 
 
-
-//#include "CComponent.h"
-//#include "Collision.h"
-//#include "gameObject.h"
-//#include "scene.h"
-
-
 void Scene::SetCollisionVisibility_GameObjectList(bool visibility)
 {
 	m_Collision_Visility = visibility;

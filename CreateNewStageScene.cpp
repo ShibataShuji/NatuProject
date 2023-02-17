@@ -1,14 +1,6 @@
 
 #include "stdafx.h"
 
-//#include "CreateNewStageScene.h"
-//#include "audio.h"
-//#include "manager.cpp"
-//#include "renderer.h"
-//#include <dinput.h>
-//#include "OriginalBlock.h"
-
-
 Audio* CreateNewStageScene_bgm;
 
 void CreateNewStageScene::Init()
@@ -42,11 +34,6 @@ void CreateNewStageScene::Init()
 	// 全てのオブジェクトの簡易バウンディングボックス2Dを表示オフにしておく
 	SetALLSimpleBoundingBox3DUseDraw(false);
 
-	//MeshField* meshfield = AddGameObject<MeshField>(1);
-	//meshfield->SetAreaBlock(Int2(0, 0));
-	//meshfield = AddGameObject<MeshField>(1);
-	//meshfield->SetAreaBlock(Int2(0, 1));
-
 	CreateNewStageScene_bgm = AddGameObject<Audio>(2);
 	CreateNewStageScene_bgm->Load("asset\\audio\\bgm.wav");
 	CreateNewStageScene_bgm->Play(true);
@@ -69,10 +56,6 @@ void CreateNewStageScene::Update()
 	Scene* scene = Manager::GetScene();
 	Savedata* save = Manager::GetSavedata();
 
-	static int aaa = 0;
-
-	if (Input::GetKeyTrigger(DIK_H))
-		aaa++;
 
 	bool IsWindowHovered = false;
 	IsWindowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
@@ -257,7 +240,4 @@ void CreateNewStageScene::Update()
 		if (m_Brush != nullptr)
 			m_Brush->SetBrushMode(E_CreateStageScene_Mode::Paint);
 	}
-
-
-
 }

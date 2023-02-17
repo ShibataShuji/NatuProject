@@ -1,6 +1,4 @@
 #include "stdafx.h"
-//#include "MeshFieldObject.h"
-
 
 // arrayŒ^‚Í—v‘f”‚ğÈ—ª‚Å‚«‚È‚¢BvectorŒ^‚ÍÈ—ª‚Å‚«‚é
 //std::array<std::array<float, FieldSize + 1>, FieldSize + 1> g_fieldHeight;

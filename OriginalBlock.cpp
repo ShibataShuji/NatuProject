@@ -1,19 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include "OriginalBlock.h"
-//#include "camera.h"
-//#include "scene.h"
-//#include <dinput.h>
-//#include "main.h"
-//#include "input.h"
-//#include <D3D11.h>
-//#include <d3dx9.h>
-//#include "manager.h"
-//#include "Result.h"
 
 void OriginalBlock::Init()
 {
@@ -23,6 +8,8 @@ void OriginalBlock::Init()
 	m_name = "Input ObjectName";
 	m_modelname = "Torus";
 	m_DoSave = 1;
+
+	m_UseShadow = true;
 
 }
 

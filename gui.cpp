@@ -1,35 +1,6 @@
 
 #include "stdafx.h"
 
-//#include <tchar.h>
-//#include <stdio.h>
-//#include <windows.h>
-//#include <assert.h>
-//#include <string>
-//#include <vector>
-//
-//#include <d3d11.h>
-//#include <d3dx9.h>
-//#include <d3dx11.h>
-//
-//#include "imgui.h"
-//#include "imgui_impl_win32.h"
-//#include "imgui_impl_dx11.h"
-//
-//#include "gui.h"
-//#include "scene.h"
-//#include "manager.h"
-//#include "main.h"
-//#include "LoadedObject.h"
-//#include "Collision.h"
-//#include "Rigidbody.h"
-//#include "model.h"
-//#include "ModelComponent.h"
-//#include "Savedata.h"
-//#include "OriginalBlock.h"
-//#include "gameObject.h"
-//#include "Collision.h"
-
 // Comboをstringで簡単に扱うための自作関数
 static bool ImGuiComboUI(const std::string& caption, std::string& current_item, int& current_itemNum,
 	const std::vector<std::string>& items) 
@@ -1019,6 +990,11 @@ GameObject* Gui::CreateNewStageGUI(E_CreateStageScene_Mode* mode, bool* pOut_bac
 		gameobject->GetObjectNameChar64(objectname);
 		std::string nameS = objectname;
 		nameS = nameS + "_" + to_string(count);
+		// 読み込み失敗しているなら表示するときNullをつける
+		if(!gameobject->GetLoadSuccess())
+		{
+			nameS += "(Null)";
+		}
 		if (ImGui::Button(nameS.c_str()))
 		{
 			addbutton = true;
@@ -1544,6 +1520,7 @@ void Gui::SaveData_CollisionResponseGUI() noexcept
 		if (ImGui::Button(displayDelete.c_str()))
 		{
 			savedata->Delete_Collision_ObjectTypeSaveList(n);
+			Manager::GetSavedata()->SaveCollisionResponse();
 			goto endpoint;
 		}
 
@@ -1583,6 +1560,9 @@ void Gui::SaveData_CollisionResponseGUI() noexcept
 	{
 		savedata->Add_Collision_ObjectTypeSaveList(objtypename, mode);
 		objtypename = "ObjectType Name";
+
+		Manager::GetSavedata()->SaveCollisionResponse();
+		goto endpoint;
 	}
 
 	endpoint:

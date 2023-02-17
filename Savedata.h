@@ -41,7 +41,11 @@ public:
 	std::vector<std::string>	m_Collision_ObjectTypeSaveList;		// 種類の名前リスト
 	std::vector<int>			m_Collision_DefaultResponseList;	// デフォルト応答の設定
 	void SetCollisionVisibility_LoadedObjectList(bool visibility);
-
+	std::vector<std::string>* GetpCollision_ObjectTypeSaveList() { return &m_Collision_ObjectTypeSaveList; }
+	std::vector<std::string> GetCollision_ObjectTypeSaveList() { return m_Collision_ObjectTypeSaveList; }
+	std::vector<int>* GetpCollision_DefaultResponseList() { return &m_Collision_DefaultResponseList; }
+	std::vector<int> GetCollision_DefaultResponseList() { return m_Collision_DefaultResponseList; }
+	int GetCollisionResponseListSize() { return m_Collision_DefaultResponseList.size(); }
 
 	std::list<GameObject*> m_LoadedObjectList[3];				// 読み込んでいるオブジェクトのリスト
 

@@ -1,21 +1,5 @@
-
 #include "stdafx.h"
 
-
-//#include "main.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include "input.h"
-//#include "polygon2D.h"
-//#include "Field.h"
-//#include "camera.h"
-//#include "player.h"
-//#include "scene.h"
-//#include "Game.h"
-//#include "Title.h"
-//#include "audio.h"
-//
-//#include "Savedata.h"
 
 Savedata* Manager::m_Savedata = nullptr;
 

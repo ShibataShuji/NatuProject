@@ -4,7 +4,6 @@
 
 
 #include "CComponent.h"
-//#include "SimpleBoundingBox2D.h"
 #include "SimpleBoundingBox3D.h"
 
 // セーブデータに保存されるもの
@@ -44,6 +43,8 @@ class GameObject
 protected:	// アクセス指定子
 
 	bool		m_Destroy = false;
+
+	bool		m_LoadSuccess = true;
 
 
 	D3DXVECTOR3 m_Position;
@@ -585,13 +586,8 @@ public:
 	float GetSimpleBoundingBox3DRadius() { return m_SimpleBoundingBox3DRadius; }
 	float* GetpSimpleBoundingBox3DRadius() { return &m_SimpleBoundingBox3DRadius; }
 
-	//// 追加する色
-	//void SetSynthesizeColorUse(const bool& use) { m_SynthesizeColorUse = use; }
-	//bool GetSynthesizeColorUse() { return m_SynthesizeColorUse; }
-
-	//void SetSynthesizeColor(const D3DXVECTOR4& color) { m_SynthesizeColor = color; }
-	//D3DXVECTOR4 GetSynthesizeColor() { return m_SynthesizeColor; }
-	//D3DXVECTOR4* GetpSynthesizeColor() { return &m_SynthesizeColor; }
+	bool GetLoadSuccess() { return m_LoadSuccess; }
+	void SetLoadSuccess(const bool& success) { m_LoadSuccess = success; }
 
 };
 

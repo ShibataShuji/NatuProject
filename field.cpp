@@ -1,20 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include "field.h"
-//#include "camera.h"
-//#include "scene.h"
-//#include <dinput.h>
-//#include "main.h"
-//#include "input.h"
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include <d3dx9.h>
-
 
 
 void Field::Init()

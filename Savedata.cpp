@@ -1,20 +1,5 @@
-
 #include "stdafx.h"
 
-//#include <iostream>
-//#include <fstream>
-//#include <string>
-//#include <vector>
-//#include <filesystem>
-//#include "Savedata.h"
-//
-//#include "input.h"
-//
-//#include "scene.h"
-//#include "Collision.h"
-//#include "manager.h"
-//#include "LoadedObject.h"
-//#include "OriginalBlock.h"
 
 
 // ふつうの関数の宣言
@@ -293,15 +278,6 @@ void Savedata::LoadObject()
 			addObject->SetSimpleBoundingBox3DRadius(BoundingBoxRadius);
 		}
 
-		//int tehetehe = 4;
-		//// 追加する色の読み込み
-		//{
-		//	
-		//	D3DXVECTOR4 SynthesizeColor = D3DXVECTOR4(0.0f, 0.0f, 0.0f, 0.0f);
-		//	Objectfile.read((char*)&SynthesizeColor, sizeof(SynthesizeColor));
-		//	addObject->SetSynthesizeColor(SynthesizeColor);
-		//}
-
 
 		int compnum = 0;
 		Objectfile.read((char*)&compnum, sizeof(compnum));	// 所持しているコンポーネント数の読み込み
@@ -329,8 +305,21 @@ void Savedata::AddObjectForLoadedStage()
 		//LoadObjSPOD.sm_name;
 		GameObject* loadedobj = GetLoadedObjectWithName(LoadObjSPOD.sm_name);	// 名前から読み込まれているオブジェクトを検索
 		OriginalBlock* addObj = scene->AddGameObject<OriginalBlock>(1);	// とりあえずただのオブジェクトを追加
-		addObj->CopyGameObject(loadedobj);	// m_Componentlist以外をコピー(ポインターなのでコピーしたらダメ)
-		addObj->CopyComponentListToAdd(loadedobj);	// この中でAddComponentで同じ内容にする。とListも更新される
+		// 検索しても出てこなかったら
+		if (loadedobj == nullptr)
+		{
+			addObj->SetLoadSuccess(false);	// 読み込み失敗フラグ
+			addObj->SetObjectName(LoadObjSPOD.sm_name);		// 名前だけはもらう
+			// 何も見えないとあれなのでモデルを付けておく
+			ModelComponent* model = addObj->AddComponent<ModelComponent>();
+			model->SetModelName("Sphere");
+		}
+		else
+		{
+			addObj->SetLoadSuccess(true);	// 読み込み失敗フラグ
+			addObj->CopyGameObject(loadedobj);	// m_Componentlist以外をコピー(ポインターなのでコピーしたらダメ)
+			addObj->CopyComponentListToAdd(loadedobj);	// この中でAddComponentで同じ内容にする。とListも更新される
+		}
 		// 一通りオブジェクトデータをコピーしたら、座標などを入れていく
 		addObj->SetPosition(LoadObjSPOD.sm_Position);
 		addObj->SetRotation(LoadObjSPOD.sm_Rotation);
@@ -573,8 +562,6 @@ void Savedata::LoadCollisionResponse()
 	Responsefile.close();
 
 	// ロード終了
-	int adsdsdaa = 4;
-	_RPTN(_CRT_WARN, "LoadCollisionResponse %d\n", adsdsdaa);
 }
 
 

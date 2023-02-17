@@ -1,12 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "ModelComponent.h"
-//#include "renderer.h"
-//#include "manager.h"
-//#include "model.h"
-//#include "Savedata.h"
-//#include "gameObject.h"
 
  void ModelComponent::Init()
 {

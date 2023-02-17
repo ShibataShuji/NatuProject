@@ -1,19 +1,5 @@
-
 #include "stdafx.h"
 
-//#include "Collision.h"
-//#include "main.h"
-//#include "scene.h"
-//#include "manager.h"
-//#include "gameObject.h"
-//#include <d3d11.h>
-//
-//#include "CComponent.h"
-//#include "primitive.h"
-//
-//#include "model.h"
-//#include "ModelComponent.h"
-//#include "renderer.h"
 
 void Collision::Update()
 {
@@ -95,17 +81,6 @@ not_allIgnore:
 			// 無視だったら終了
 			if (response == RESPONSE_IGNORE)
 				continue;
-
-
-			//// コンポーネントのリストを取得して、複数個コリジョンを持っていった場合に対応する
-			//std::list<CComponent*> other_ComponentList = other->GetComponentList();
-			//for (auto other_Component : other_ComponentList)
-			//{
-			//	// コンポーネントリストのそれがコリジョンクラスだったら
-			//	if (typeid(*other_Component) == typeid(Collision))
-			//	{
-			//		// CComponentクラスをダウンをキャストしてCollisionクラスにする
-			//		Collision* other_collision = dynamic_cast <Collision*>(other_Component);
 
 
 			//static const int	BOX_COLLISION = 0;
@@ -391,72 +366,6 @@ not_allIgnore:
 
 
 			}
-
-
-
-			//if (m_ParentGameObject->Gettagnum() == 2)
-			//{
-			//	// cp_Capsule にはカプセル側の最接近点の座標が取得できる(Closest point 最接近点)
-			//	int flag;
-			//	D3DXVECTOR3 cp_Capsule;
-			//	cp_Capsule = ClosestPtCapsuleOBB(m_capsule, other_collision->m_obb, flag);
-
-			//	// 今のままだとカプセル側の最接近点がカプセルの外周なので、中心のラインで計算するように戻す(y座標は維持or上下の球体の場合戻す)
-			//	D3DXVECTOR3 cp_CapsuleCenterLine = cp_Capsule;
-			//	cp_CapsuleCenterLine.x = m_capsule.GetCenterPos().x;
-			//	cp_CapsuleCenterLine.z = m_capsule.GetCenterPos().z;
-			//	if (cp_Capsule.y > m_capsule.GetCenterPos().y)
-			//		cp_CapsuleCenterLine.y = m_capsule.GetUpperSpherePos().y;
-			//	if (cp_Capsule.y < m_capsule.GetCenterPos().y)
-			//		cp_CapsuleCenterLine.y = m_capsule.GetLowerSpherePos().y;
-
-			//	// cp_OBB にはOBB側の最接近点の座標が取得できる
-			//	D3DXVECTOR3 cp_OBB;
-			//	ClosestPtPointOBB(cp_CapsuleCenterLine, other_collision->m_obb, cp_OBB);
-
-			//	// distance カプセルからみたOBBへの最短距離(ベクトル)
-			//	D3DXVECTOR3 distance;
-			//	distance = cp_OBB - cp_CapsuleCenterLine;
-
-			//	// length カプセルからOBBへの最短距離
-			//	float length;
-			//	length = D3DXVec3Length(&distance);
-
-			//	// overlaplength カプセルとOBBの重なっている距離
-			//	float overlaplength;
-			//	overlaplength = m_capsule.m_Radius - length;
-			//	// 方向ベクトルの準備
-			//	D3DXVECTOR3 normal;
-			//	D3DXVec3Normalize(&normal, &distance);
-
-			//	// 衝突してたらの処理
-			//	if (length <= m_capsule.m_Radius)
-			//	{
-			//		// 重なっていたら戻す処理
-			//		t_Position = m_ParentGameObject->GetPosition();		// ゲット
-			//		D3DXVECTOR3 backVector;
-			//		backVector = normal * overlaplength;	// 方向ベクトルのむきに重なっている距離分戻す
-
-			//		OverlapToBackPosition(m_ParentGameObject, other, backVector);		// この中でセットしている
-
-			//		// これより下で衝突をしているならば接地しているとみなす
-			//		float OnTheGroundHeight;
-			//		OnTheGroundHeight = m_capsule.GetLowerSpherePos().y - m_capsule.m_Radius * (1.0f - m_OnTheGroundCoefficient);
-
-
-			//		// 接地判定処理。flag == 1で上にいる。-1で下にいる。0で横
-			//		if (flag == 1 && t_Velocity.y < 0.0f && cp_Capsule.y < OnTheGroundHeight)
-			//		{
-			//			m_ParentGameObject->SetOnTheGround(true);
-			//			m_ParentGameObject->SetVelocity_y(0.0f);
-			//		}
-			//	}
-			//}
-
-			//	}
-			//}
-
-
 		}
 	}
 
@@ -541,121 +450,12 @@ not_allIgnore:
 				halfheight = GetOBB().GetRotNormalLength(1, D3DXVECTOR3(1.0f, 1.0f, 1.0f));
 
 			Int2 block;
-			//BackAndSetPositionForMeshFieldObject(&block, halfheight);
 			CalcCollisionMeshFieldObject(halfheight);
 
-			//// メッシュフィールド高さ取得。
-			//float meshHeight;
-			//D3DXVECTOR3 meshNormal;
-			//Int2 block;
-			//scene->GetMeshFieldObjectHeightandNormal(&block, &meshHeight, &meshNormal, m_ColPosition);
-			//if (m_ColPosition.y - halfheight < meshHeight)
-			//{
-			//	// 地面よりも下にいる。埋まっている。
-			//	if (meshNormal.y < 0.6)
-			//	{
-			//		// 崖とか坂にいるから法線の方向に押し戻してあげる
-					//D3DXVECTOR3 moveNormal = meshNormal;
-					//moveNormal.y = 0.0f;
-					//D3DXVec3Normalize(&moveNormal, &moveNormal);
-
-			//		D3DXVECTOR3 movevector = moveNormal * PanelSize;
-
-			//		m_ParentGameObject->AddPosition(movevector);
-			//		m_ParentGameObject->SetOnTheGround(false);
-			//		m_ParentGameObject->SetVelocity_y(0.0f);
-			//	}
-			//	else
-			//	{
-			//		D3DXVECTOR3 upvector = D3DXVECTOR3(0.0f, meshHeight - m_ColPosition.y + halfheight, 0.0f);
-			//		m_ParentGameObject->AddPosition(upvector);
-			//		m_ParentGameObject->SetOnTheGround(true);
-			//		m_ParentGameObject->SetVelocity_y(0.0f);
-			//	}
-			//}
-			//else
-			//{
-			//	// 地面よりも上にいる。浮いている。
-			//	// もしメッシュフィールドを考えない場合で地面についているなら、何もしなくていい。
-			//	//if (GetOnTheGround())
-			//	//{
-			//	//	//SetOnTheGround(false);
-			//	//	//SetTempOnTheGround(false);
-			//	//}
-
-			//}
-
-
-			//// メッシュフィールド高さ取得。
-			//float meshHeight = scene->GetMeshFieldObjectHeight(m_ColPosition);
-			//if (m_ColPosition.y - halfheight < meshHeight)
-			//{
-			//	// 地面よりも下にいる。埋まっている。
-			//	D3DXVECTOR3 upvector = D3DXVECTOR3(0.0f, meshHeight - m_ColPosition.y + halfheight, 0.0f);
-			//	m_ParentGameObject->AddPosition(upvector);
-			//	m_ParentGameObject->SetOnTheGround(true);
-			//	m_ParentGameObject->SetVelocity_y(0.0f);
-			//}
-			//else
-			//{
-			//	// 地面よりも上にいる。浮いている。
-			//	// もしメッシュフィールドを考えない場合で地面についているなら、何もしなくていい。
-			//	//if (GetOnTheGround())
-			//	//{
-			//	//	//SetOnTheGround(false);
-			//	//	//SetTempOnTheGround(false);
-			//	//}
-
-			//}
 		}
 	}
 
 }
-
-//D3DXMATRIX Collision::GetWorldMatrixCollision()
-//{
-//	D3DXVECTOR3 Scale = m_ParentGameObject->GetScaleRate();
-//	Scale.x *= m_ColInitScale.x;
-//	Scale.y *= m_ColInitScale.y;
-//	Scale.z *= m_ColInitScale.z;
-//	D3DXVECTOR3 Rotation = m_ParentGameObject->GetRotation();
-//	Rotation.x;
-//	Rotation.y;
-//	Rotation.z;
-//	Rotation += m_ColInitRotation;
-//	Rotation.x;
-//	Rotation.y;
-//	Rotation.z;
-//	D3DXVECTOR3 Position = m_ParentGameObject->GetPosition();
-//	Position += m_ColInitOffset;
-//	//D3DXVECTOR3 Position = m_ColInitOffset;
-//
-//	D3DXMATRIX world, scale, rot, trans;
-//	D3DXMatrixScaling(&scale, Scale.x, Scale.y, Scale.z);
-//	D3DXMatrixRotationYawPitchRoll(&rot, Rotation.y, Rotation.x, Rotation.z);
-//	D3DXMatrixTranslation(&trans, Position.x, Position.y, Position.z);
-//	world = scale * rot * trans;		// 通常はこう
-//	//world = scale * trans * rot;		// 親を回転の中心とするとこう
-//
-//
-//	D3DXVECTOR3 ParentPos = m_ParentGameObject->GetPosition();
-//	D3DXVECTOR3 ParentScaleRate = m_ParentGameObject->GetOldScaleRate();
-//
-//	m_ColScale = Scale;
-//	m_ColRotation = Rotation;
-//
-//	// 親の回転分座標を移動させる。超大事。
-//	D3DXVECTOR3 offset = CalcAfterRoatedPos(m_ColInitOffset, m_ParentGameObject->GetRotation());
-//	offset.x *= ParentScaleRate.x;
-//	offset.y *= ParentScaleRate.y;
-//	offset.z *= ParentScaleRate.z;
-//
-//	// 最後に親のオブジェクトに、計算で求めたオフセットを足してあげる
-//	m_ColPosition = m_ParentGameObject->GetPosition() + offset;
-//
-//	return world;
-//}
-
 
 D3DXMATRIX Collision::GetWorldMatrixCollision()
 {
@@ -735,7 +535,7 @@ bool Collision::BackAndSetPositionForMeshFieldObject(Int2* pOut_block, const flo
 		if (m_ColPosition.y - halfheight < meshHeight)
 		{
 			// 地面よりも下にいる。埋まっている。
-			if (meshNormal.y < 0.6)
+			if (meshNormal.y < 0.4)
 			{
 				// 崖とか坂にいるから法線の方向に押し戻してあげる
 				D3DXVECTOR3 moveNormal = meshNormal;
@@ -983,7 +783,64 @@ void Collision::CalcCollisionMeshFieldObject(const float& halfheight)
 
 		return;
 	}
+}
 
 
 
+
+void Collision::Save(std::ofstream* Objfile, std::ofstream* ObjfileB)
+{
+	// ここではこのコンポーネントの設定を書き込む
+	StructCollisionData scd;
+	scd = RealtoSCD();
+
+	Objfile->write((char*)&scd, sizeof(scd));
+	ObjfileB->write((char*)&scd, sizeof(scd));
+
+	// 自分がどのオブジェクトタイプかを書き込む
+	Objfile->write((char*)&m_ObjectType, sizeof(m_ObjectType));
+	ObjfileB->write((char*)&m_ObjectType, sizeof(m_ObjectType));
+
+	// リストのサイズを書き込みその分書き込む
+	int listsize = m_ResponseObjectList.size();
+	Objfile->write((char*)&listsize, sizeof(listsize));
+	ObjfileB->write((char*)&listsize, sizeof(listsize));
+	for (int n = 0; n < listsize; n++)
+	{
+		int response = m_ResponseObjectList[n];
+		Objfile->write((char*)&response, sizeof(response));
+		ObjfileB->write((char*)&response, sizeof(response));
+	}
+
+}
+
+void Collision::Load(std::ifstream* Objfile)
+{
+	// ここではこのコンポーネントの設定を書き込む
+
+	Savedata* save = Manager::GetSavedata();
+	int listsize = save->GetCollisionResponseListSize();
+
+	StructCollisionData scd;
+
+	Objfile->read((char*)&scd, sizeof(scd));
+
+	SCDtoReal(scd);		// 読み込んだものを反映させる
+
+	// 自分がどのオブジェクトタイプかを読み込む
+	int objtype = 0;
+	Objfile->read((char*)&objtype, sizeof(objtype));
+	m_ObjectType = objtype;
+
+	// リストのサイズを読み込みその分読み込む。pushbackでやる
+	int FIlselistsize = 0;	// ファイルに書いてあるリストのサイズ。違う場合があるのでそれ以上は読んで捨てる
+	Objfile->read((char*)&FIlselistsize, sizeof(FIlselistsize));
+	for (int n = 0; n < FIlselistsize; n++)
+	{
+		int response = 0;
+		Objfile->read((char*)&response, sizeof(response));
+
+		if (n < listsize)
+			m_ResponseObjectList.push_back(response);
+	}
 }

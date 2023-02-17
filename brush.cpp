@@ -188,17 +188,6 @@ void Brush::Draw()
 
 void Brush::BurushKyeUpdate()
 {
-	//// アクティブじゃないときに、クリックした瞬間にトリガーポジションを更新する。
-	//if (Input::IsMouseLeftTriggered() || Input::IsMouseRightTriggered())
-	//{
-	//	if (m_MouseActiveState == E_MouseActiveState::NotActive)
-	//	{
-	//		SetTriggerPosition(m_Position);
-	//	}
-	//}
-
-	// Stateの初期化
-	//m_MouseActiveState = E_MouseActiveState::NotActive;
 
 	// トリガーは毎回最初にリセット
 	m_MouseTriggerState = E_MouseTriggerState::NotTrriger;
@@ -253,14 +242,6 @@ void Brush::BurushKyeUpdate()
 
 }
 
-/*
-static BOOL IsMouseLeftPressed(void);      // 左クリックした状態
-static BOOL IsMouseLeftTriggered(void);    // 左クリックした瞬間
-static BOOL IsMouseRightPressed(void);     // 右クリックした状態
-static BOOL IsMouseRightTriggered(void);   // 右クリックした瞬間
-static BOOL IsMouseCenterPressed(void);    // 中クリックした状態
-static BOOL IsMouseCenterTriggered(void);  // 中クリックした瞬間
-*/
 
 // レイを作ってメッシュフィールドオブジェクトとの衝突点をm_Positionにセットする。衝突していなかったら指定した分先の座標が返る
 D3DXVECTOR3 Brush::CheckRayCollisionMeshFieldObject(const float& maxlength, const float& nohitlength, const D3DXVECTOR3& MouseWorldOrigin, const D3DXVECTOR3& MouseWorldDirection)

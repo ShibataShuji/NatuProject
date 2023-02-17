@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "gameObject.h"
 
 class LoadedObject : public GameObject	// åpè≥
 {

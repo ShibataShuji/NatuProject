@@ -1,15 +1,4 @@
-
 #include "stdafx.h"
-
-//#include "main.h"
-//#include "renderer.h"
-//#include "Shadow.h"
-//#include <d3dx9.h>
-//#include <D3D11.h>
-//#include <D3DX11.h>
-//#include <cassert>
-//#include "gameObject.h"
-
 
 
 void Shadow::Init()

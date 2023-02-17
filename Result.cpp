@@ -1,24 +1,12 @@
 
 #include "stdafx.h"
 
-//#include "main.h"
-//#include "manager.h"
-//#include "renderer.h"
-//#include "scene.h"
-//
-//#include "Resultlogo.h"
-////#include "Game.h"
-//#include "Result.h"
-//#include "Title.h"
-//#include "input.h"
-//#include "Game.h"
-//#include <dinput.h>
-//#include "scene.h"
 
 void Result::Init()
 {
 	SetSceneName("Result");
-	AddGameObject<Resultlogo>(2);
+	AddImageDisplayFull("asset/texture/Result_Tapioka.png");
+
 }
 
 void Result::Uninit()

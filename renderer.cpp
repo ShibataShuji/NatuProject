@@ -1,32 +1,4 @@
-
 #include "stdafx.h"
-
-//#define _CRT_SECURE_NO_WARNINGS
-
-//#include <io.h>
-//#include <tchar.h>
-//#include <stdio.h>
-//#include <windows.h>
-//
-//#include <d3d11.h>
-//#include <d3dx9.h>
-//#include <d3dx11.h>
-//
-//#include "imgui.h"
-//#include "imgui_impl_win32.h"
-//#include "imgui_impl_dx11.h"
-//
-//#include "main.h"
-//#include "gui.h"
-//#include "renderer.h"
-
-
-//#include "main.h"
-//#include "renderer.h"
-//
-//#include "gui.h"
-//
-//#include "gui.h"
 
 D3D_FEATURE_LEVEL       Renderer::m_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
 

@@ -1,19 +1,11 @@
 #include "stdafx.h"
 
-//#include "scene.h"
-//#include "Title.h"
-//#include "Titlelogo.h"
-//#include <dinput.h>
-//#include "input.h"
-//#include "manager.h"
-//#include "CreateNewObjectScene.h"
-//#include "CreateNewStageScene.h"
-//#include "StageSelectScene.h"
 
 void Title::Init()
 {
 	SetSceneName("Title");
-	AddGameObject<Titlelogo>(2);
+	AddImageDisplayFull("asset/texture/SSE_Title.png");
+
 }
 
 void Title::Uninit()
